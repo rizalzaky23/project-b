@@ -22,12 +22,30 @@ class AsuransiRemoteDataSourceImpl implements AsuransiRemoteDataSource {
     if (kendaraanId != null) params['kendaraan_id'] = kendaraanId;
     if (search != null && search.isNotEmpty) params['search'] = search;
     final r = await _apiClient.get(ApiConstants.asuransiKendaraan, queryParameters: params);
-    final data = r.data['data'];
-    return (items: (data['data'] as List).map((e) => AsuransiModel.fromJson(e)).toList(), meta: PaginationMeta.fromJson(data));
+    final body = r.data;
+    return (
+      items: (body['data'] as List).map((e) => AsuransiModel.fromJson(e)).toList(),
+      meta: PaginationMeta.fromJson(body['meta'] ?? body),
+    );
   }
 
-  @override Future<AsuransiModel> getById(int id) async { final r = await _apiClient.get('${ApiConstants.asuransiKendaraan}/$id'); return AsuransiModel.fromJson(r.data['data']); }
-  @override Future<AsuransiModel> create(FormData f) async { final r = await _apiClient.post(ApiConstants.asuransiKendaraan, data: f); return AsuransiModel.fromJson(r.data['data']); }
-  @override Future<AsuransiModel> update(int id, FormData f) async { f.fields.add(const MapEntry('_method', 'PUT')); final r = await _apiClient.post('${ApiConstants.asuransiKendaraan}/$id', data: f); return AsuransiModel.fromJson(r.data['data']); }
-  @override Future<void> delete(int id) async { await _apiClient.delete('${ApiConstants.asuransiKendaraan}/$id'); }
+  @override Future<AsuransiModel> getById(int id) async {
+    final r = await _apiClient.get('${ApiConstants.asuransiKendaraan}/$id');
+    return AsuransiModel.fromJson(r.data['data']);
+  }
+
+  @override Future<AsuransiModel> create(FormData f) async {
+    final r = await _apiClient.post(ApiConstants.asuransiKendaraan, data: f);
+    return AsuransiModel.fromJson(r.data['data']);
+  }
+
+  @override Future<AsuransiModel> update(int id, FormData f) async {
+    f.fields.add(const MapEntry('_method', 'PUT'));
+    final r = await _apiClient.post('${ApiConstants.asuransiKendaraan}/$id', data: f);
+    return AsuransiModel.fromJson(r.data['data']);
+  }
+
+  @override Future<void> delete(int id) async {
+    await _apiClient.delete('${ApiConstants.asuransiKendaraan}/$id');
+  }
 }

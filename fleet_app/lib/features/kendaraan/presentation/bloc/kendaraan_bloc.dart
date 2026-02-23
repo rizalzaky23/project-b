@@ -164,8 +164,11 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
       _currentMeta = result.meta;
       emit(KendaraanLoaded(items: _currentItems, meta: _currentMeta!));
     } catch (e) {
-      if (e is Failure) emit(KendaraanError(e));
-      else emit(KendaraanError(ServerFailure(e.toString())));
+      if (e is Failure) {
+        emit(KendaraanError(e));
+      } else {
+        emit(KendaraanError(ServerFailure(e.toString())));
+      }
     }
   }
 
@@ -206,8 +209,11 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
       );
       emit(KendaraanActionSuccess('Kendaraan berhasil ditambahkan'));
     } catch (e) {
-      if (e is Failure) emit(KendaraanActionError(e));
-      else emit(KendaraanActionError(ServerFailure(e.toString())));
+      if (e is Failure) {
+        emit(KendaraanActionError(e));
+      } else {
+        emit(KendaraanActionError(ServerFailure(e.toString())));
+      }
     }
   }
 
@@ -233,8 +239,11 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
       );
       emit(KendaraanActionSuccess('Kendaraan berhasil diperbarui'));
     } catch (e) {
-      if (e is Failure) emit(KendaraanActionError(e));
-      else emit(KendaraanActionError(ServerFailure(e.toString())));
+      if (e is Failure) {
+        emit(KendaraanActionError(e));
+      } else {
+        emit(KendaraanActionError(ServerFailure(e.toString())));
+      }
     }
   }
 
@@ -244,8 +253,11 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
       await _repository.delete(event.id);
       emit(KendaraanActionSuccess('Kendaraan berhasil dihapus'));
     } catch (e) {
-      if (e is Failure) emit(KendaraanActionError(e));
-      else emit(KendaraanActionError(ServerFailure(e.toString())));
+      if (e is Failure) {
+        emit(KendaraanActionError(e));
+      } else {
+        emit(KendaraanActionError(ServerFailure(e.toString())));
+      }
     }
   }
 }

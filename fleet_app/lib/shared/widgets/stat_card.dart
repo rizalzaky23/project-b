@@ -41,7 +41,7 @@ class StatCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(value,
-                style: TextStyle(
+                style: const TextStyle(
                     color: AppTheme.onSurface,
                     fontSize: 24,
                     fontWeight: FontWeight.bold)),

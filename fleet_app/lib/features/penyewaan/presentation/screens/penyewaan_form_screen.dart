@@ -42,7 +42,9 @@ class _PenyewaanFormScreenState extends State<PenyewaanFormScreen> {
     _group = e?.group ?? false;
   }
 
-  @override void dispose() { for (final c in [_kendaraanIdCtrl, _kodeCtrl, _masaSewaCtrl, _tglMulaiCtrl, _tglSelesaiCtrl, _penangCtrl, _lokasiCtrl, _salesCtrl, _nilaiCtrl]) c.dispose(); super.dispose(); }
+  @override void dispose() { for (final c in [_kendaraanIdCtrl, _kodeCtrl, _masaSewaCtrl, _tglMulaiCtrl, _tglSelesaiCtrl, _penangCtrl, _lokasiCtrl, _salesCtrl, _nilaiCtrl]) {
+    c.dispose();
+  } super.dispose(); }
 
   Future<void> _pickDate(TextEditingController ctrl, void Function(DateTime) onPick) async {
     final dt = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2030));

@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
-import '../../../../shared/widgets/app_loading.dart';
 import '../../domain/entities/kendaraan_entity.dart';
-import '../bloc/kendaraan_bloc.dart';
 
 class KendaraanDetailScreen extends StatelessWidget {
   final KendaraanEntity kendaraan;

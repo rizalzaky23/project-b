@@ -17,8 +17,8 @@ class DetailKendaraanModel extends DetailKendaraanEntity {
 
   factory DetailKendaraanModel.fromJson(Map<String, dynamic> json) {
     return DetailKendaraanModel(
-      id: json['id'],
-      kendaraanId: json['kendaraan_id'],
+      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      kendaraanId: int.tryParse(json['kendaraan_id']?.toString() ?? '0') ?? 0,
       noPolisi: json['no_polisi'] ?? '',
       berlakuMulai: json['berlaku_mulai'],
       namaPemilik: json['nama_pemilik'] ?? '',

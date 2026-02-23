@@ -21,8 +21,8 @@ class PenyewaanRepositoryImpl implements PenyewaanRepository {
   Future<PenyewaanEntity> create({required int kendaraanId, required String kodePenyewa, required bool group, required int masaSewa, required String tanggalMulai, required String tanggalSelesai, required String penanggungJawab, String? lokasiSewa, String? sales, required double nilaiSewa}) async {
     try {
       final data = {'kendaraan_id': kendaraanId, 'kode_penyewa': kodePenyewa, 'group': group, 'masa_sewa': masaSewa, 'tanggal_mulai': tanggalMulai, 'tanggal_selesai': tanggalSelesai, 'penanggung_jawab': penanggungJawab, 'nilai_sewa': nilaiSewa};
-      if (lokasiSewa != null) data['lokasi_sewa' as String] = lokasiSewa as Object;
-      if (sales != null) data['sales' as String] = sales as Object;
+      if (lokasiSewa != null) data['lokasi_sewa'] = lokasiSewa as Object;
+      if (sales != null) data['sales'] = sales as Object;
       return await _remote.create(data.map((k, v) => MapEntry(k, v)));
     } on DioException catch (e) { throw ApiHelper.handleError(e); }
   }

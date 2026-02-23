@@ -7,7 +7,6 @@ class ApiClient {
   final TokenStorage _tokenStorage;
   final void Function()? onUnauthorized;
 
-  // Flag untuk mencegah logout loop saat sedang proses login
   bool _isAuthenticating = false;
 
   ApiClient(this._tokenStorage, {this.onUnauthorized}) {
@@ -30,9 +29,6 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException e, handler) {
-          // Hanya trigger onUnauthorized jika:
-          // - Status 401
-          // - Bukan sedang proses login/register (menghindari loop)
           if (e.response?.statusCode == 401 && !_isAuthenticating) {
             final path = e.requestOptions.path;
             final isAuthEndpoint = path.contains('/auth/login') ||
@@ -47,37 +43,17 @@ class ApiClient {
     );
   }
 
-  void setAuthenticating(bool value) {
-    _isAuthenticating = value;
-  }
+  void setAuthenticating(bool value) => _isAuthenticating = value;
 
-  Future<Response> get(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-  }) async {
-    return await _dio.get(path, queryParameters: queryParameters);
-  }
+  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) async =>
+      await _dio.get(path, queryParameters: queryParameters);
 
-  Future<Response> post(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-  }) async {
-    return await _dio.post(path, data: data, queryParameters: queryParameters);
-  }
+  Future<Response> post(String path, {dynamic data, Map<String, dynamic>? queryParameters}) async =>
+      await _dio.post(path, data: data, queryParameters: queryParameters);
 
-  Future<Response> put(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-  }) async {
-    return await _dio.put(path, data: data, queryParameters: queryParameters);
-  }
+  Future<Response> put(String path, {dynamic data, Map<String, dynamic>? queryParameters}) async =>
+      await _dio.put(path, data: data, queryParameters: queryParameters);
 
-  Future<Response> delete(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-  }) async {
-    return await _dio.delete(path, queryParameters: queryParameters);
-  }
+  Future<Response> delete(String path, {Map<String, dynamic>? queryParameters}) async =>
+      await _dio.delete(path, queryParameters: queryParameters);
 }

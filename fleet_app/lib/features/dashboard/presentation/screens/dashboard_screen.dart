@@ -40,12 +40,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           PopupMenuButton<String>(
             icon: const Icon(Icons.account_circle_outlined),
             itemBuilder: (_) => [
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: 'logout',
                 child: Row(children: [
-                  const Icon(Icons.logout, size: 18, color: AppTheme.error),
-                  const SizedBox(width: 8),
-                  const Text('Logout', style: TextStyle(color: AppTheme.error)),
+                  Icon(Icons.logout, size: 18, color: AppTheme.error),
+                  SizedBox(width: 8),
+                  Text('Logout', style: TextStyle(color: AppTheme.error)),
                 ]),
               ),
             ],

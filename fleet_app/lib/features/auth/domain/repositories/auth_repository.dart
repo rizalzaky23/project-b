@@ -1,5 +1,4 @@
 import '../entities/user_entity.dart';
-import '../../../../shared/utils/failure.dart';
 
 abstract class AuthRepository {
   Future<({UserEntity user, String token})> login(String email, String password);

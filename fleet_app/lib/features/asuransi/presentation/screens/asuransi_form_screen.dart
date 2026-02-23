@@ -42,7 +42,9 @@ class _AsuransiFormScreenState extends State<AsuransiFormScreen> {
     _pertanggunganCtrl = TextEditingController(text: e?.nilaiPertanggungan.toStringAsFixed(0) ?? '');
   }
 
-  @override void dispose() { for (final c in [_kendaraanIdCtrl, _perusahaanCtrl, _jenisCtrl, _tanggalMulaiCtrl, _tanggalAkhirCtrl, _noPolisCtrl, _premiCtrl, _pertanggunganCtrl]) c.dispose(); super.dispose(); }
+  @override void dispose() { for (final c in [_kendaraanIdCtrl, _perusahaanCtrl, _jenisCtrl, _tanggalMulaiCtrl, _tanggalAkhirCtrl, _noPolisCtrl, _premiCtrl, _pertanggunganCtrl]) {
+    c.dispose();
+  } super.dispose(); }
 
   Future<void> _pickDate(TextEditingController ctrl, void Function(DateTime) onPick) async {
     final dt = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));

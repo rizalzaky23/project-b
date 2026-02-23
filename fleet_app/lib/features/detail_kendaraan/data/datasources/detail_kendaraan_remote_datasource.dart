@@ -21,35 +21,31 @@ class DetailKendaraanRemoteDataSourceImpl implements DetailKendaraanRemoteDataSo
     final params = <String, dynamic>{'page': page};
     if (kendaraanId != null) params['kendaraan_id'] = kendaraanId;
     if (search != null && search.isNotEmpty) params['search'] = search;
-    final response = await _apiClient.get(ApiConstants.detailKendaraan, queryParameters: params);
-    final data = response.data['data'];
+    final r = await _apiClient.get(ApiConstants.detailKendaraan, queryParameters: params);
+    final body = r.data;
     return (
-      items: (data['data'] as List).map((e) => DetailKendaraanModel.fromJson(e)).toList(),
-      meta: PaginationMeta.fromJson(data),
+      items: (body['data'] as List).map((e) => DetailKendaraanModel.fromJson(e)).toList(),
+      meta: PaginationMeta.fromJson(body['meta'] ?? body),
     );
   }
 
-  @override
-  Future<DetailKendaraanModel> getById(int id) async {
+  @override Future<DetailKendaraanModel> getById(int id) async {
     final r = await _apiClient.get('${ApiConstants.detailKendaraan}/$id');
     return DetailKendaraanModel.fromJson(r.data['data']);
   }
 
-  @override
-  Future<DetailKendaraanModel> create(FormData formData) async {
+  @override Future<DetailKendaraanModel> create(FormData formData) async {
     final r = await _apiClient.post(ApiConstants.detailKendaraan, data: formData);
     return DetailKendaraanModel.fromJson(r.data['data']);
   }
 
-  @override
-  Future<DetailKendaraanModel> update(int id, FormData formData) async {
+  @override Future<DetailKendaraanModel> update(int id, FormData formData) async {
     formData.fields.add(const MapEntry('_method', 'PUT'));
     final r = await _apiClient.post('${ApiConstants.detailKendaraan}/$id', data: formData);
     return DetailKendaraanModel.fromJson(r.data['data']);
   }
 
-  @override
-  Future<void> delete(int id) async {
+  @override Future<void> delete(int id) async {
     await _apiClient.delete('${ApiConstants.detailKendaraan}/$id');
   }
 }

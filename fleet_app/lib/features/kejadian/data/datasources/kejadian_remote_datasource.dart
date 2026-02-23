@@ -5,7 +5,7 @@ import '../../../../shared/utils/pagination_meta.dart';
 import '../models/kejadian_model.dart';
 
 abstract class KejadianRemoteDataSource {
-  Future<({List<KejadianModel> items, PaginationMeta meta})> getAll({int page=1, int? kendaraanId, String? search});
+  Future<({List<KejadianModel> items, PaginationMeta meta})> getAll({int page = 1, int? kendaraanId, String? search});
   Future<KejadianModel> getById(int id);
   Future<KejadianModel> create(FormData f);
   Future<KejadianModel> update(int id, FormData f);
@@ -17,17 +17,35 @@ class KejadianRemoteDataSourceImpl implements KejadianRemoteDataSource {
   KejadianRemoteDataSourceImpl(this._apiClient);
 
   @override
-  Future<({List<KejadianModel> items, PaginationMeta meta})> getAll({int page=1, int? kendaraanId, String? search}) async {
-    final params = <String,dynamic>{'page': page};
+  Future<({List<KejadianModel> items, PaginationMeta meta})> getAll({int page = 1, int? kendaraanId, String? search}) async {
+    final params = <String, dynamic>{'page': page};
     if (kendaraanId != null) params['kendaraan_id'] = kendaraanId;
     if (search != null && search.isNotEmpty) params['search'] = search;
     final r = await _apiClient.get(ApiConstants.kejadianKendaraan, queryParameters: params);
-    final data = r.data['data'];
-    return (items: (data['data'] as List).map((e) => KejadianModel.fromJson(e)).toList(), meta: PaginationMeta.fromJson(data));
+    final body = r.data;
+    return (
+      items: (body['data'] as List).map((e) => KejadianModel.fromJson(e)).toList(),
+      meta: PaginationMeta.fromJson(body['meta'] ?? body),
+    );
   }
 
-  @override Future<KejadianModel> getById(int id) async { final r = await _apiClient.get('${ApiConstants.kejadianKendaraan}/$id'); return KejadianModel.fromJson(r.data['data']); }
-  @override Future<KejadianModel> create(FormData f) async { final r = await _apiClient.post(ApiConstants.kejadianKendaraan, data: f); return KejadianModel.fromJson(r.data['data']); }
-  @override Future<KejadianModel> update(int id, FormData f) async { f.fields.add(const MapEntry('_method','PUT')); final r = await _apiClient.post('${ApiConstants.kejadianKendaraan}/$id', data: f); return KejadianModel.fromJson(r.data['data']); }
-  @override Future<void> delete(int id) async { await _apiClient.delete('${ApiConstants.kejadianKendaraan}/$id'); }
+  @override Future<KejadianModel> getById(int id) async {
+    final r = await _apiClient.get('${ApiConstants.kejadianKendaraan}/$id');
+    return KejadianModel.fromJson(r.data['data']);
+  }
+
+  @override Future<KejadianModel> create(FormData f) async {
+    final r = await _apiClient.post(ApiConstants.kejadianKendaraan, data: f);
+    return KejadianModel.fromJson(r.data['data']);
+  }
+
+  @override Future<KejadianModel> update(int id, FormData f) async {
+    f.fields.add(const MapEntry('_method', 'PUT'));
+    final r = await _apiClient.post('${ApiConstants.kejadianKendaraan}/$id', data: f);
+    return KejadianModel.fromJson(r.data['data']);
+  }
+
+  @override Future<void> delete(int id) async {
+    await _apiClient.delete('${ApiConstants.kejadianKendaraan}/$id');
+  }
 }

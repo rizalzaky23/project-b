@@ -22,15 +22,15 @@ class KendaraanModel extends KendaraanEntity {
 
   factory KendaraanModel.fromJson(Map<String, dynamic> json) {
     return KendaraanModel(
-      id: json['id'],
+      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       kodeKendaraan: json['kode_kendaraan'] ?? '',
       merk: json['merk'] ?? '',
       tipe: json['tipe'] ?? '',
       warna: json['warna'] ?? '',
       noChasis: json['no_chasis'] ?? '',
       noMesin: json['no_mesin'] ?? '',
-      tahunPerolehan: json['tahun_perolehan'] ?? 0,
-      tahunPembuatan: json['tahun_pembuatan'] ?? 0,
+      tahunPerolehan: int.tryParse(json['tahun_perolehan']?.toString() ?? '0') ?? 0,
+      tahunPembuatan: int.tryParse(json['tahun_pembuatan']?.toString() ?? '0') ?? 0,
       hargaPerolehan: double.tryParse(json['harga_perolehan']?.toString() ?? '0') ?? 0,
       dealer: json['dealer'],
       fotoDepan: json['foto_depan'],
