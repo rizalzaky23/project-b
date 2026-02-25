@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
-import '../../../../shared/widgets/network_image_widget.dart';
 import '../../domain/entities/kendaraan_entity.dart';
 
 class KendaraanCard extends StatelessWidget {
@@ -20,42 +20,120 @@ class KendaraanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Ambil lebar layar untuk scaling
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Breakpoint: phone kecil < 360, normal 360–599, tablet >= 600
+    final isSmallPhone = screenWidth < 360;
+    final isTablet = screenWidth >= 600;
+
+    final double cardHeight = isTablet
+        ? 120
+        : isSmallPhone
+            ? 90
+            : 106;
+    final double photoWidth = isTablet
+        ? 130
+        : isSmallPhone
+            ? 80
+            : 110;
+    final double titleFontSize = isTablet
+        ? 15
+        : isSmallPhone
+            ? 12
+            : 14;
+    final double subFontSize = isTablet
+        ? 13
+        : isSmallPhone
+            ? 10
+            : 12;
+    final double chipFontSize = isTablet
+        ? 12
+        : isSmallPhone
+            ? 9
+            : 11;
+    final double iconSize = isTablet ? 22 : 20;
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.divider),
-        ),
-        child: Row(
-          children: [
-            _buildPhoto(),
-            Expanded(child: _buildInfo(context)),
-            _buildActions(context),
-          ],
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Container(
+          height: cardHeight,
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.divider),
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _buildPhoto(photoWidth, cardHeight),
+                  Expanded(
+                    child: _buildInfo(
+                      context,
+                      titleFontSize: titleFontSize,
+                      subFontSize: subFontSize,
+                      chipFontSize: chipFontSize,
+                    ),
+                  ),
+                  _buildActions(context, iconSize: iconSize),
+                ],
+              ),
+              // Badge ID
+              Positioned(
+                top: -13,
+                right: -13,
+                child: Container(
+                  constraints: BoxConstraints(minWidth: isTablet ? 60 : 52),
+                  height: isTablet ? 30 : 26,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary,
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(color: AppTheme.surface, width: 2),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'ID = ${kendaraan.id}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isTablet ? 11 : 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildPhoto() {
+  Widget _buildPhoto(double width, double height) {
     return ClipRRect(
       borderRadius: const BorderRadius.only(
         topLeft: Radius.circular(12),
         bottomLeft: Radius.circular(12),
       ),
       child: SizedBox(
-        width: 90,
-        height: 90,
-        child: NetworkImageWidget(
-          imageUrl: kendaraan.fotoDepan,
-          width: 90,
-          height: 90,
-          fit: BoxFit.cover,
-          errorWidget: _placeholderIcon(),
-          placeholder: Container(color: AppTheme.surfaceVariant),
-        ),
+        width: width,
+        height: height,
+        child: kendaraan.fotoDepan != null
+            ? CachedNetworkImage(
+                imageUrl: kendaraan.fotoDepan!,
+                fit: BoxFit.cover,
+                placeholder: (_, __) =>
+                    Container(color: AppTheme.surfaceVariant),
+                errorWidget: (_, __, ___) => _placeholderIcon(),
+              )
+            : _placeholderIcon(),
       ),
     );
   }
@@ -63,62 +141,101 @@ class KendaraanCard extends StatelessWidget {
   Widget _placeholderIcon() {
     return Container(
       color: AppTheme.surfaceVariant,
-      child: const Icon(Icons.directions_car_outlined, color: AppTheme.textSecondary, size: 32),
+      child: const Icon(Icons.directions_car_outlined,
+          color: AppTheme.textSecondary, size: 36),
     );
   }
 
-  Widget _buildInfo(BuildContext context) {
+  Widget _buildInfo(
+    BuildContext context, {
+    required double titleFontSize,
+    required double subFontSize,
+    required double chipFontSize,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '${kendaraan.merk} ${kendaraan.tipe}',
-            style: const TextStyle(
-                color: AppTheme.onSurface, fontWeight: FontWeight.w600, fontSize: 14),
+            style: TextStyle(
+              color: AppTheme.onSurface,
+              fontWeight: FontWeight.w600,
+              fontSize: titleFontSize,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 3),
           Text(
-            kendaraan.kodeKendaraan,
-            style: const TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.w500),
+            kendaraan.noChasis,
+            style: TextStyle(
+              color: AppTheme.primary,
+              fontSize: subFontSize,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 4),
           Row(
             children: [
-              _InfoChip(label: kendaraan.warna, icon: Icons.palette_outlined),
+              Flexible(
+                child: _InfoChip(
+                  label: kendaraan.warna,
+                  icon: Icons.palette_outlined,
+                  fontSize: chipFontSize,
+                ),
+              ),
               const SizedBox(width: 6),
-              _InfoChip(label: kendaraan.tahunPembuatan.toString(), icon: Icons.calendar_today_outlined),
+              Flexible(
+                child: _InfoChip(
+                  label: kendaraan.tahunPembuatan.toString(),
+                  icon: Icons.calendar_today_outlined,
+                  fontSize: chipFontSize,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
             FormatHelper.currency(kendaraan.hargaPerolehan),
-            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: subFontSize,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActions(BuildContext context) {
+  Widget _buildActions(BuildContext context, {required double iconSize}) {
     return Padding(
-      padding: const EdgeInsets.only(right: 4),
+      padding: const EdgeInsets.only(right: 6),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 20, color: AppTheme.primary),
+            icon: Icon(Icons.edit_outlined,
+                size: iconSize, color: AppTheme.primary),
             onPressed: onEdit,
             tooltip: 'Edit',
+            padding: const EdgeInsets.all(6),
+            constraints: const BoxConstraints(),
           ),
+          const SizedBox(height: 6),
           IconButton(
-            icon: const Icon(Icons.delete_outline, size: 20, color: AppTheme.error),
+            icon: Icon(Icons.delete_outline,
+                size: iconSize, color: AppTheme.error),
             onPressed: onDelete,
             tooltip: 'Hapus',
+            padding: const EdgeInsets.all(6),
+            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -129,8 +246,13 @@ class KendaraanCard extends StatelessWidget {
 class _InfoChip extends StatelessWidget {
   final String label;
   final IconData icon;
+  final double fontSize;
 
-  const _InfoChip({required this.label, required this.icon});
+  const _InfoChip({
+    required this.label,
+    required this.icon,
+    required this.fontSize,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -143,9 +265,17 @@ class _InfoChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: AppTheme.textSecondary),
+          Icon(icon, size: fontSize - 1, color: AppTheme.textSecondary),
           const SizedBox(width: 3),
-          Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+          Flexible(
+            child: Text(
+              label,
+              style:
+                  TextStyle(color: AppTheme.textSecondary, fontSize: fontSize),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
