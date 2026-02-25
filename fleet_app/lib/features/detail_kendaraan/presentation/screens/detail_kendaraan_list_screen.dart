@@ -67,7 +67,10 @@ class _DetailKendaraanListScreenState extends State<DetailKendaraanListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: AppTheme.primary),
-            onPressed: () => context.push('/kendaraan/create'),
+            onPressed: () {
+              final id = widget.kendaraanId;
+              context.push('/detail-kendaraan/create${id != null ? '?kendaraan_id=$id' : ''}');
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -89,20 +92,18 @@ class _DetailKendaraanListScreenState extends State<DetailKendaraanListScreen> {
         child: BlocBuilder<DetailKendaraanBloc, DetailKendaraanState>(
           builder: (ctx, state) {
             if (state is DetailKendaraanLoading) return const AppLoading();
-            if (state is DetailKendaraanError) {
+            if (state is DetailKendaraanError)
               return EmptyState(
                   message: state.failure.message,
                   icon: Icons.error_outline,
                   onRetry: () => ctx.read<DetailKendaraanBloc>().add(
                       DetailKendaraanLoadRequested(
                           kendaraanId: widget.kendaraanId)));
-            }
             if (state is DetailKendaraanLoaded) {
-              if (state.items.isEmpty) {
+              if (state.items.isEmpty)
                 return const EmptyState(
                     message: 'Belum ada data detail kendaraan',
                     icon: Icons.description_outlined);
-              }
               return ListView.separated(
                 controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
@@ -151,11 +152,10 @@ class _DetailKendaraanListScreenState extends State<DetailKendaraanListScreen> {
                             final ok = await showConfirmDialog(ctx,
                                 title: 'Hapus',
                                 message: 'Hapus detail ${item.noPolisi}?');
-                            if (ok && ctx.mounted) {
+                            if (ok && ctx.mounted)
                               ctx
                                   .read<DetailKendaraanBloc>()
                                   .add(DetailKendaraanDeleteRequested(item.id));
-                            }
                           },
                         ),
                       ],

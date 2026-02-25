@@ -64,7 +64,10 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: AppTheme.primary),
-            onPressed: () => context.push('/kendaraan/create'),
+            onPressed: () {
+              final id = widget.kendaraanId;
+              context.push('/kejadian/create${id != null ? '?kendaraan_id=$id' : ''}');
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -87,19 +90,17 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
         child: BlocBuilder<KejadianBloc, KejadianState>(
           builder: (ctx, state) {
             if (state is KejadianLoading) return const AppLoading();
-            if (state is KejadianError) {
+            if (state is KejadianError)
               return EmptyState(
                   message: state.failure.message,
                   icon: Icons.error_outline,
                   onRetry: () => ctx.read<KejadianBloc>().add(
                       KejadianLoadRequested(kendaraanId: widget.kendaraanId)));
-            }
             if (state is KejadianLoaded) {
-              if (state.items.isEmpty) {
+              if (state.items.isEmpty)
                 return const EmptyState(
                     message: 'Belum ada data kejadian',
                     icon: Icons.report_problem_outlined);
-              }
               return ListView.separated(
                 controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
@@ -156,11 +157,10 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
                                       title: 'Hapus Kejadian',
                                       message:
                                           'Hapus kejadian tanggal ${FormatHelper.date(item.tanggal)}?');
-                                  if (ok && ctx.mounted) {
+                                  if (ok && ctx.mounted)
                                     ctx
                                         .read<KejadianBloc>()
                                         .add(KejadianDeleteRequested(item.id));
-                                  }
                                 }),
                           ]),
                         ]),

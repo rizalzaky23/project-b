@@ -68,7 +68,10 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: AppTheme.primary),
-            onPressed: () => context.push('/kendaraan/create'),
+            onPressed: () {
+              final id = widget.kendaraanId;
+              context.push('/penyewaan/create${id != null ? '?kendaraan_id=$id' : ''}');
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -89,18 +92,16 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
         child: BlocBuilder<PenyewaanBloc, PenyewaanState>(
           builder: (ctx, state) {
             if (state is PenyewaanLoading) return const AppLoading();
-            if (state is PenyewaanError) {
+            if (state is PenyewaanError)
               return EmptyState(
                   message: state.failure.message,
                   icon: Icons.error_outline,
                   onRetry: _reload);
-            }
             if (state is PenyewaanLoaded) {
-              if (state.items.isEmpty) {
+              if (state.items.isEmpty)
                 return const EmptyState(
                     message: 'Belum ada data penyewaan',
                     icon: Icons.assignment_outlined);
-              }
               return ListView.separated(
                 controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
@@ -201,11 +202,10 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
                                       title: 'Hapus Penyewaan',
                                       message:
                                           'Hapus penyewaan ${item.kodePenyewa}?');
-                                  if (ok && ctx.mounted) {
+                                  if (ok && ctx.mounted)
                                     ctx
                                         .read<PenyewaanBloc>()
                                         .add(PenyewaanDeleteRequested(item.id));
-                                  }
                                 }),
                           ]),
                         ]),

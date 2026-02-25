@@ -64,7 +64,10 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: AppTheme.primary),
-            onPressed: () => context.push('/kendaraan/create'),
+            onPressed: () {
+              final id = widget.kendaraanId;
+              context.push('/asuransi/create${id != null ? '?kendaraan_id=$id' : ''}');
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -87,19 +90,17 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
         child: BlocBuilder<AsuransiBloc, AsuransiState>(
           builder: (ctx, state) {
             if (state is AsuransiLoading) return const AppLoading();
-            if (state is AsuransiError) {
+            if (state is AsuransiError)
               return EmptyState(
                   message: state.failure.message,
                   icon: Icons.error_outline,
                   onRetry: () => ctx.read<AsuransiBloc>().add(
                       AsuransiLoadRequested(kendaraanId: widget.kendaraanId)));
-            }
             if (state is AsuransiLoaded) {
-              if (state.items.isEmpty) {
+              if (state.items.isEmpty)
                 return const EmptyState(
                     message: 'Belum ada data asuransi',
                     icon: Icons.health_and_safety_outlined);
-              }
               return ListView.separated(
                 controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
@@ -174,11 +175,10 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
                                       title: 'Hapus Asuransi',
                                       message:
                                           'Hapus asuransi ${item.noPolis}?');
-                                  if (ok && ctx.mounted) {
+                                  if (ok && ctx.mounted)
                                     ctx
                                         .read<AsuransiBloc>()
                                         .add(AsuransiDeleteRequested(item.id));
-                                  }
                                 }),
                           ],
                         ),
