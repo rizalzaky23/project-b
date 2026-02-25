@@ -14,7 +14,8 @@ class ApiClient {
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
         connectTimeout: const Duration(milliseconds: ApiConstants.connectTimeout),
-        receiveTimeout: const Duration(milliseconds: ApiConstants.receiveTimeout),
+        receiveTimeout: const Duration(milliseconds: 120000), // 120s untuk upload file
+        sendTimeout: const Duration(milliseconds: 120000),    // 120s untuk upload file
         headers: {'Accept': 'application/json'},
       ),
     );

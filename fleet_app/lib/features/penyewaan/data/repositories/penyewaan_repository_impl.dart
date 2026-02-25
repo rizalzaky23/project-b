@@ -11,7 +11,7 @@ class PenyewaanRepositoryImpl implements PenyewaanRepository {
 
   @override
   Future<({List<PenyewaanEntity> items, PaginationMeta meta})> getAll({int page=1, int? kendaraanId, String? search, bool? aktif}) async {
-    try { final r = await _remote.getAll(page: page, kendaraanId: kendaraanId, search: search, aktif: aktif); return (items: r.items as List<PenyewaanEntity>, meta: r.meta); }
+    try { final r = await _remote.getAll(page: page, kendaraanId: kendaraanId, search: search, aktif: aktif); return (items: r.items.cast<PenyewaanEntity>(), meta: r.meta); }
     on DioException catch (e) { throw ApiHelper.handleError(e); }
   }
 

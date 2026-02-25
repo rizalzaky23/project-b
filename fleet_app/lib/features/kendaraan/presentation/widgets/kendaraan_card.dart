@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
+import '../../../../shared/widgets/network_image_widget.dart';
 import '../../domain/entities/kendaraan_entity.dart';
 
 class KendaraanCard extends StatelessWidget {
@@ -48,14 +48,14 @@ class KendaraanCard extends StatelessWidget {
       child: SizedBox(
         width: 90,
         height: 90,
-        child: kendaraan.fotoDepan != null
-            ? CachedNetworkImage(
-                imageUrl: kendaraan.fotoDepan!,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(color: AppTheme.surfaceVariant),
-                errorWidget: (_, __, ___) => _placeholderIcon(),
-              )
-            : _placeholderIcon(),
+        child: NetworkImageWidget(
+          imageUrl: kendaraan.fotoDepan,
+          width: 90,
+          height: 90,
+          fit: BoxFit.cover,
+          errorWidget: _placeholderIcon(),
+          placeholder: Container(color: AppTheme.surfaceVariant),
+        ),
       ),
     );
   }

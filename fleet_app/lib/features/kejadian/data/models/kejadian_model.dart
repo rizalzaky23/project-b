@@ -1,3 +1,4 @@
+import '../../../../core/constants/api_constants.dart';
 import '../../domain/entities/kejadian_entity.dart';
 
 class KejadianModel extends KejadianEntity {
@@ -17,9 +18,9 @@ class KejadianModel extends KejadianEntity {
     kendaraanId: int.tryParse(j['kendaraan_id']?.toString() ?? '0') ?? 0,
     tanggal: j['tanggal'] ?? '',
     deskripsi: j['deskripsi'],
-    fotoKm: j['foto_km'],
-    foto1: j['foto_1'],
-    foto2: j['foto_2'],
+    fotoKm: ApiConstants.resolveFileUrl(j['foto_km']),
+    foto1: ApiConstants.resolveFileUrl(j['foto_1']),
+    foto2: ApiConstants.resolveFileUrl(j['foto_2']),
     kendaraan: j['kendaraan'] as Map<String, dynamic>?,
   );
 }

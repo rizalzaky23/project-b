@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
+import '../../../../shared/widgets/network_image_widget.dart';
 import '../../domain/entities/kendaraan_entity.dart';
 
 class KendaraanDetailScreen extends StatelessWidget {
@@ -54,7 +54,7 @@ class KendaraanDetailScreen extends StatelessWidget {
       kendaraan.fotoKiri,
       kendaraan.fotoKanan,
       kendaraan.fotoBelakang,
-    ].where((p) => p != null).toList();
+    ].where((p) => p != null && p.isNotEmpty).toList();
 
     if (photos.isEmpty) {
       return Container(
@@ -75,24 +75,12 @@ class KendaraanDetailScreen extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemCount: photos.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, i) => ClipRRect(
+        itemBuilder: (context, i) => NetworkImageWidget(
+          imageUrl: photos[i],
+          width: 280,
+          height: 200,
+          fit: BoxFit.cover,
           borderRadius: BorderRadius.circular(12),
-          child: CachedNetworkImage(
-            imageUrl: photos[i]!,
-            width: 280,
-            height: 200,
-            fit: BoxFit.cover,
-            placeholder: (_, __) => Container(
-              width: 280,
-              color: AppTheme.surfaceVariant,
-              child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            ),
-            errorWidget: (_, __, ___) => Container(
-              width: 280,
-              color: AppTheme.surfaceVariant,
-              child: const Icon(Icons.broken_image_outlined, color: AppTheme.textSecondary),
-            ),
-          ),
         ),
       ),
     );

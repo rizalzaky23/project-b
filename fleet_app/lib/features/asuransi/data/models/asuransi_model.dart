@@ -1,3 +1,4 @@
+import '../../../../core/constants/api_constants.dart';
 import '../../domain/entities/asuransi_entity.dart';
 
 class AsuransiModel extends AsuransiEntity {
@@ -30,12 +31,12 @@ class AsuransiModel extends AsuransiEntity {
     noPolis: j['no_polis'] ?? '',
     nilaiPremi: double.tryParse(j['nilai_premi']?.toString() ?? '0') ?? 0,
     nilaiPertanggungan: double.tryParse(j['nilai_pertanggungan']?.toString() ?? '0') ?? 0,
-    fotoDepan: j['foto_depan'],
-    fotoKiri: j['foto_kiri'],
-    fotoKanan: j['foto_kanan'],
-    fotoBelakang: j['foto_belakang'],
-    fotoDashboard: j['foto_dashboard'],
-    fotoKm: j['foto_km'],
+    fotoDepan: ApiConstants.resolveFileUrl(j['foto_depan']),
+    fotoKiri: ApiConstants.resolveFileUrl(j['foto_kiri']),
+    fotoKanan: ApiConstants.resolveFileUrl(j['foto_kanan']),
+    fotoBelakang: ApiConstants.resolveFileUrl(j['foto_belakang']),
+    fotoDashboard: ApiConstants.resolveFileUrl(j['foto_dashboard']),
+    fotoKm: ApiConstants.resolveFileUrl(j['foto_km']),
     kendaraan: j['kendaraan'] as Map<String, dynamic>?,
   );
 }

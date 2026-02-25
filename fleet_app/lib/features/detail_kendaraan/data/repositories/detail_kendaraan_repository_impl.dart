@@ -4,6 +4,7 @@ import '../../domain/entities/detail_kendaraan_entity.dart';
 import '../../domain/repositories/detail_kendaraan_repository.dart';
 import '../datasources/detail_kendaraan_remote_datasource.dart';
 import '../../../../shared/utils/api_helper.dart';
+import '../../../../shared/utils/multipart_helper.dart';
 import '../../../../shared/utils/pagination_meta.dart';
 
 class DetailKendaraanRepositoryImpl implements DetailKendaraanRepository {
@@ -14,7 +15,7 @@ class DetailKendaraanRepositoryImpl implements DetailKendaraanRepository {
   Future<({List<DetailKendaraanEntity> items, PaginationMeta meta})> getAll({int page = 1, int? kendaraanId, String? search}) async {
     try {
       final r = await _remote.getAll(page: page, kendaraanId: kendaraanId, search: search);
-      return (items: r.items as List<DetailKendaraanEntity>, meta: r.meta);
+      return (items: r.items.cast<DetailKendaraanEntity>(), meta: r.meta);
     } on DioException catch (e) { throw ApiHelper.handleError(e); }
   }
 
@@ -31,7 +32,7 @@ class DetailKendaraanRepositoryImpl implements DetailKendaraanRepository {
       if (berlakuMulai != null) fields['berlaku_mulai'] = berlakuMulai;
       final formData = FormData.fromMap(fields);
       for (final entry in [('foto_stnk', fotoStnk), ('foto_bpkb', fotoBpkb), ('foto_nomor', fotoNomor), ('foto_km', fotoKm)]) {
-        if (entry.$2 != null) formData.files.add(MapEntry(entry.$1, await MultipartFile.fromFile(entry.$2!.path, filename: entry.$2!.name)));
+        if (entry.$2 != null) await addFileToForm(formData, entry.$1, entry.$2);
       }
       return await _remote.create(formData);
     } on DioException catch (e) { throw ApiHelper.handleError(e); }
@@ -46,7 +47,7 @@ class DetailKendaraanRepositoryImpl implements DetailKendaraanRepository {
       if (berlakuMulai != null) fields['berlaku_mulai'] = berlakuMulai;
       final formData = FormData.fromMap(fields);
       for (final entry in [('foto_stnk', fotoStnk), ('foto_bpkb', fotoBpkb), ('foto_nomor', fotoNomor), ('foto_km', fotoKm)]) {
-        if (entry.$2 != null) formData.files.add(MapEntry(entry.$1, await MultipartFile.fromFile(entry.$2!.path, filename: entry.$2!.name)));
+        if (entry.$2 != null) await addFileToForm(formData, entry.$1, entry.$2);
       }
       return await _remote.update(id, formData);
     } on DioException catch (e) { throw ApiHelper.handleError(e); }

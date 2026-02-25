@@ -1,12 +1,19 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
-
-import 'api_constants_stub.dart'
-    if (dart.library.io) 'api_constants_io.dart' as platform_helper;
-
 class ApiConstants {
-  static String get baseUrl {
-    if (kIsWeb) return 'http://127.0.0.1:8000/api';
-    return platform_helper.getBaseUrl();
+  // Azure VM - digunakan untuk semua platform
+  static const String _azureBaseUrl = 'http://20.39.196.239/api';
+  // Base URL untuk file storage (tanpa /api)
+  static const String storageUrl = 'http://20.39.196.239/storage';
+
+  static String get baseUrl => _azureBaseUrl;
+
+  /// Konversi path relatif dari API menjadi URL lengkap.
+  /// Jika sudah berupa URL lengkap (http/https), dikembalikan apa adanya.
+  static String? resolveFileUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    // Hapus leading slash jika ada
+    final clean = path.startsWith('/') ? path.substring(1) : path;
+    return 'http://20.39.196.239/$clean';
   }
 
   // Gunakan int biasa, bukan const, karena baseUrl sudah getter

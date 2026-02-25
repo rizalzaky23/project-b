@@ -4,6 +4,7 @@ import '../../domain/entities/asuransi_entity.dart';
 import '../../domain/repositories/asuransi_repository.dart';
 import '../datasources/asuransi_remote_datasource.dart';
 import '../../../../shared/utils/api_helper.dart';
+import '../../../../shared/utils/multipart_helper.dart';
 import '../../../../shared/utils/pagination_meta.dart';
 
 class AsuransiRepositoryImpl implements AsuransiRepository {
@@ -22,14 +23,14 @@ class AsuransiRepositoryImpl implements AsuransiRepository {
     if (nilaiPertanggungan != null) f['nilai_pertanggungan'] = nilaiPertanggungan.toString();
     final formData = FormData.fromMap(f);
     for (final e in [('foto_depan', fotoDepan), ('foto_kiri', fotoKiri), ('foto_kanan', fotoKanan), ('foto_belakang', fotoBelakang), ('foto_dashboard', fotoDashboard), ('foto_km', fotoKm)]) {
-      if (e.$2 != null) formData.files.add(MapEntry(e.$1, await MultipartFile.fromFile(e.$2!.path, filename: e.$2!.name)));
+      if (e.$2 != null) await addFileToForm(formData, e.$1, e.$2);
     }
     return formData;
   }
 
   @override
   Future<({List<AsuransiEntity> items, PaginationMeta meta})> getAll({int page = 1, int? kendaraanId, String? search}) async {
-    try { final r = await _remote.getAll(page: page, kendaraanId: kendaraanId, search: search); return (items: r.items as List<AsuransiEntity>, meta: r.meta); }
+    try { final r = await _remote.getAll(page: page, kendaraanId: kendaraanId, search: search); return (items: r.items.cast<AsuransiEntity>(), meta: r.meta); }
     on DioException catch (e) { throw ApiHelper.handleError(e); }
   }
 

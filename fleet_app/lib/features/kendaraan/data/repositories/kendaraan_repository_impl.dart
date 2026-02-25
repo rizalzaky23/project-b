@@ -4,6 +4,7 @@ import '../../domain/entities/kendaraan_entity.dart';
 import '../../domain/repositories/kendaraan_repository.dart';
 import '../datasources/kendaraan_remote_datasource.dart';
 import '../../../../shared/utils/api_helper.dart';
+import '../../../../shared/utils/multipart_helper.dart';
 import '../../../../shared/utils/pagination_meta.dart';
 
 class KendaraanRepositoryImpl implements KendaraanRepository {
@@ -27,7 +28,7 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
         warna: warna,
         tahunPembuatan: tahunPembuatan,
       );
-      return (items: result.items as List<KendaraanEntity>, meta: result.meta);
+      return (items: result.items.cast<KendaraanEntity>(), meta: result.meta);
     } on DioException catch (e) {
       throw ApiHelper.handleError(e);
     }
@@ -163,12 +164,7 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
     final formData = FormData.fromMap(fields);
 
     Future<void> addPhoto(String key, XFile? file) async {
-      if (file != null) {
-        formData.files.add(MapEntry(
-          key,
-          await MultipartFile.fromFile(file.path, filename: file.name),
-        ));
-      }
+      await addFileToForm(formData, key, file);
     }
 
     await addPhoto('foto_depan', fotoDepan);

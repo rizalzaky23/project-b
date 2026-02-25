@@ -1,3 +1,4 @@
+import '../../../../core/constants/api_constants.dart';
 import '../../domain/entities/kendaraan_entity.dart';
 
 class KendaraanModel extends KendaraanEntity {
@@ -33,10 +34,10 @@ class KendaraanModel extends KendaraanEntity {
       tahunPembuatan: int.tryParse(json['tahun_pembuatan']?.toString() ?? '0') ?? 0,
       hargaPerolehan: double.tryParse(json['harga_perolehan']?.toString() ?? '0') ?? 0,
       dealer: json['dealer'],
-      fotoDepan: json['foto_depan'],
-      fotoKiri: json['foto_kiri'],
-      fotoKanan: json['foto_kanan'],
-      fotoBelakang: json['foto_belakang'],
+      fotoDepan: ApiConstants.resolveFileUrl(json['foto_depan']),
+      fotoKiri: ApiConstants.resolveFileUrl(json['foto_kiri']),
+      fotoKanan: ApiConstants.resolveFileUrl(json['foto_kanan']),
+      fotoBelakang: ApiConstants.resolveFileUrl(json['foto_belakang']),
       createdAt: json['created_at'],
     );
   }

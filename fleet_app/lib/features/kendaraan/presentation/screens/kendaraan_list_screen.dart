@@ -51,6 +51,23 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kendaraan'),
+
+        // --- TAMBAHKAN BAGIAN LEADING INI ---
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop(); // Kembali ke tumpukan halaman sebelumnya
+            } else {
+              // Jika halaman ini dibuka dari menu utama tanpa riwayat tumpukan,
+              // arahkan paksa ke halaman Dashboard/Home.
+              // Ganti '/home' dengan rute menu utama aplikasi Anda.
+              context.go('/dashboard');
+            }
+          },
+        ),
+        // ------------------------------------
+
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: AppTheme.primary),
@@ -63,12 +80,16 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
         listener: (context, state) {
           if (state is KendaraanActionSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: AppTheme.success),
+              SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppTheme.success),
             );
             context.read<KendaraanBloc>().add(KendaraanLoadRequested());
           } else if (state is KendaraanActionError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.failure.message), backgroundColor: AppTheme.error),
+              SnackBar(
+                  content: Text(state.failure.message),
+                  backgroundColor: AppTheme.error),
             );
           }
         },
@@ -96,7 +117,9 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                     return EmptyState(
                       message: state.failure.message,
                       icon: Icons.error_outline,
-                      onRetry: () => context.read<KendaraanBloc>().add(KendaraanLoadRequested()),
+                      onRetry: () => context
+                          .read<KendaraanBloc>()
+                          .add(KendaraanLoadRequested()),
                     );
                   }
                   if (state is KendaraanLoaded) {
@@ -114,7 +137,9 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                             children: [
                               Text(
                                 '${state.meta.total} kendaraan',
-                                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                style: const TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 13),
                               ),
                             ],
                           ),
@@ -167,7 +192,9 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
               message: 'Yakin ingin menghapus ${item.merk} ${item.tipe}?',
             );
             if (confirm && context.mounted) {
-              context.read<KendaraanBloc>().add(KendaraanDeleteRequested(item.id));
+              context
+                  .read<KendaraanBloc>()
+                  .add(KendaraanDeleteRequested(item.id));
             }
           },
         );
@@ -199,7 +226,9 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
               message: 'Yakin ingin menghapus ${item.merk} ${item.tipe}?',
             );
             if (confirm && context.mounted) {
-              context.read<KendaraanBloc>().add(KendaraanDeleteRequested(item.id));
+              context
+                  .read<KendaraanBloc>()
+                  .add(KendaraanDeleteRequested(item.id));
             }
           },
         );

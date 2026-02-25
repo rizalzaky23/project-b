@@ -4,6 +4,7 @@ import '../../domain/entities/kejadian_entity.dart';
 import '../../domain/repositories/kejadian_repository.dart';
 import '../datasources/kejadian_remote_datasource.dart';
 import '../../../../shared/utils/api_helper.dart';
+import '../../../../shared/utils/multipart_helper.dart';
 import '../../../../shared/utils/pagination_meta.dart';
 
 class KejadianRepositoryImpl implements KejadianRepository {
@@ -12,7 +13,7 @@ class KejadianRepositoryImpl implements KejadianRepository {
 
   @override
   Future<({List<KejadianEntity> items, PaginationMeta meta})> getAll({int page=1, int? kendaraanId, String? search}) async {
-    try { final r = await _remote.getAll(page: page, kendaraanId: kendaraanId, search: search); return (items: r.items as List<KejadianEntity>, meta: r.meta); }
+    try { final r = await _remote.getAll(page: page, kendaraanId: kendaraanId, search: search); return (items: r.items.cast<KejadianEntity>(), meta: r.meta); }
     on DioException catch (e) { throw ApiHelper.handleError(e); }
   }
 
@@ -25,7 +26,7 @@ class KejadianRepositoryImpl implements KejadianRepository {
       if (deskripsi != null) fields['deskripsi'] = deskripsi;
       final fd = FormData.fromMap(fields);
       for (final e in [('foto_km', fotoKm), ('foto_1', foto1), ('foto_2', foto2)]) {
-        if (e.$2 != null) fd.files.add(MapEntry(e.$1, await MultipartFile.fromFile(e.$2!.path, filename: e.$2!.name)));
+        if (e.$2 != null) await addFileToForm(fd, e.$1, e.$2);
       }
       return await _remote.create(fd);
     } on DioException catch (e) { throw ApiHelper.handleError(e); }
@@ -39,7 +40,7 @@ class KejadianRepositoryImpl implements KejadianRepository {
       if (deskripsi != null) fields['deskripsi'] = deskripsi;
       final fd = FormData.fromMap(fields);
       for (final e in [('foto_km', fotoKm), ('foto_1', foto1), ('foto_2', foto2)]) {
-        if (e.$2 != null) fd.files.add(MapEntry(e.$1, await MultipartFile.fromFile(e.$2!.path, filename: e.$2!.name)));
+        if (e.$2 != null) await addFileToForm(fd, e.$1, e.$2);
       }
       return await _remote.update(id, fd);
     } on DioException catch (e) { throw ApiHelper.handleError(e); }
