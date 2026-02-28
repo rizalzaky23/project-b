@@ -67,14 +67,6 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
           },
         ),
         // ------------------------------------
-
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: AppTheme.primary),
-            onPressed: () => context.push('/kendaraan/create'),
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: BlocListener<KendaraanBloc, KendaraanState>(
         listener: (context, state) {

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
 import '../../../../shared/widgets/network_image_widget.dart';
+import '../../../../shared/widgets/photo_viewer_widget.dart';
 import '../../domain/entities/kendaraan_entity.dart';
 
 class KendaraanDetailScreen extends StatelessWidget {
@@ -75,12 +76,14 @@ class KendaraanDetailScreen extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemCount: photos.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, i) => NetworkImageWidget(
+        itemBuilder: (context, i) => TappablePhoto(
           imageUrl: photos[i],
           width: 280,
           height: 200,
           fit: BoxFit.cover,
           borderRadius: BorderRadius.circular(12),
+          allPhotos: photos.cast<String?>(),
+          initialIndex: i,
         ),
       ),
     );

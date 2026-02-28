@@ -60,17 +60,6 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
           },
         ),
         // ------------------------------------
-
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: AppTheme.primary),
-            onPressed: () {
-              final id = widget.kendaraanId;
-              context.push('/asuransi/create${id != null ? '?kendaraan_id=$id' : ''}');
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: BlocListener<AsuransiBloc, AsuransiState>(
         listener: (ctx, state) {
@@ -111,7 +100,10 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
                   final now = DateTime.now();
                   final akhir = DateTime.tryParse(item.tanggalAkhir);
                   final isActive = akhir != null && akhir.isAfter(now);
-                  return Container(
+                  return InkWell(
+                    onTap: () => context.push('/asuransi/${item.id}'),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                         color: AppTheme.surface,
@@ -184,6 +176,7 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
                         ),
                       ],
                     ),
+                  ),
                   );
                 },
               );
@@ -191,6 +184,12 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
             return const SizedBox();
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/asuransi/create',
+            extra: {'kendaraanId': widget.kendaraanId}),
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah'),
       ),
     );
   }

@@ -8,6 +8,10 @@ import 'features/kendaraan/presentation/bloc/kendaraan_bloc.dart';
 import 'features/kendaraan/presentation/screens/kendaraan_list_screen.dart';
 import 'features/kendaraan/presentation/screens/kendaraan_form_screen.dart';
 import 'features/kendaraan/presentation/screens/kendaraan_detail_screen.dart';
+import 'features/detail_kendaraan/presentation/screens/detail_kendaraan_detail_screen.dart';
+import 'features/asuransi/presentation/screens/asuransi_detail_screen.dart';
+import 'features/kejadian/presentation/screens/kejadian_detail_screen.dart';
+import 'features/penyewaan/presentation/screens/penyewaan_detail_screen.dart';
 import 'features/detail_kendaraan/presentation/bloc/detail_kendaraan_bloc.dart';
 import 'features/detail_kendaraan/presentation/screens/detail_kendaraan_list_screen.dart';
 import 'features/detail_kendaraan/presentation/screens/detail_kendaraan_form_screen.dart';
@@ -84,6 +88,13 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
+      path: '/detail-kendaraan/:id',
+      builder: (ctx, state) => BlocProvider(
+        create: (_) => sl<DetailKendaraanBloc>(),
+        child: _DetailKendaraanDetailWrapper(id: int.parse(state.pathParameters['id']!)),
+      ),
+    ),
+    GoRoute(
       path: '/detail-kendaraan/:id/edit',
       builder: (ctx, state) => BlocProvider(create: (_) => sl<DetailKendaraanBloc>(), child: _DetailKendaraanEditWrapper(id: int.parse(state.pathParameters['id']!))),
     ),
@@ -100,6 +111,13 @@ final GoRouter appRouter = GoRouter(
         final kendaraanId = state.uri.queryParameters['kendaraan_id'];
         return BlocProvider(create: (_) => sl<AsuransiBloc>(), child: AsuransiFormScreen(kendaraanId: kendaraanId != null ? int.parse(kendaraanId) : null));
       },
+    ),
+    GoRoute(
+      path: '/asuransi/:id',
+      builder: (ctx, state) => BlocProvider(
+        create: (_) => sl<AsuransiBloc>(),
+        child: _AsuransiDetailWrapper(id: int.parse(state.pathParameters['id']!)),
+      ),
     ),
     GoRoute(
       path: '/asuransi/:id/edit',
@@ -120,6 +138,13 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
+      path: '/kejadian/:id',
+      builder: (ctx, state) => BlocProvider(
+        create: (_) => sl<KejadianBloc>(),
+        child: _KejadianDetailWrapper(id: int.parse(state.pathParameters['id']!)),
+      ),
+    ),
+    GoRoute(
       path: '/kejadian/:id/edit',
       builder: (ctx, state) => BlocProvider(create: (_) => sl<KejadianBloc>(), child: _KejadianEditWrapper(id: int.parse(state.pathParameters['id']!))),
     ),
@@ -136,6 +161,13 @@ final GoRouter appRouter = GoRouter(
         final kendaraanId = state.uri.queryParameters['kendaraan_id'];
         return BlocProvider(create: (_) => sl<PenyewaanBloc>(), child: PenyewaanFormScreen(kendaraanId: kendaraanId != null ? int.parse(kendaraanId) : null));
       },
+    ),
+    GoRoute(
+      path: '/penyewaan/:id',
+      builder: (ctx, state) => BlocProvider(
+        create: (_) => sl<PenyewaanBloc>(),
+        child: _PenyewaanDetailWrapper(id: int.parse(state.pathParameters['id']!)),
+      ),
     ),
     GoRoute(
       path: '/penyewaan/:id/edit',
@@ -260,6 +292,106 @@ class _KejadianEditWrapperState extends State<_KejadianEditWrapper> {
         if (state is KejadianLoaded) {
           final item = state.items.where((k) => k.id == widget.id).isNotEmpty ? state.items.firstWhere((k) => k.id == widget.id) : null;
           if (item != null) return KejadianFormScreen(existing: item);
+        }
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      },
+    );
+  }
+}
+
+class _DetailKendaraanDetailWrapper extends StatefulWidget {
+  final int id;
+  const _DetailKendaraanDetailWrapper({required this.id});
+  @override State<_DetailKendaraanDetailWrapper> createState() => _DetailKendaraanDetailWrapperState();
+}
+
+class _DetailKendaraanDetailWrapperState extends State<_DetailKendaraanDetailWrapper> {
+  @override
+  void initState() { super.initState(); context.read<DetailKendaraanBloc>().add(DetailKendaraanLoadRequested()); }
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DetailKendaraanBloc, DetailKendaraanState>(
+      builder: (ctx, state) {
+        if (state is DetailKendaraanLoaded) {
+          final item = state.items.where((k) => k.id == widget.id).isNotEmpty
+              ? state.items.firstWhere((k) => k.id == widget.id)
+              : null;
+          if (item != null) return DetailKendaraanDetailScreen(item: item);
+        }
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      },
+    );
+  }
+}
+
+class _AsuransiDetailWrapper extends StatefulWidget {
+  final int id;
+  const _AsuransiDetailWrapper({required this.id});
+  @override State<_AsuransiDetailWrapper> createState() => _AsuransiDetailWrapperState();
+}
+
+class _AsuransiDetailWrapperState extends State<_AsuransiDetailWrapper> {
+  @override
+  void initState() { super.initState(); context.read<AsuransiBloc>().add(AsuransiLoadRequested()); }
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AsuransiBloc, AsuransiState>(
+      builder: (ctx, state) {
+        if (state is AsuransiLoaded) {
+          final item = state.items.where((k) => k.id == widget.id).isNotEmpty
+              ? state.items.firstWhere((k) => k.id == widget.id)
+              : null;
+          if (item != null) return AsuransiDetailScreen(item: item);
+        }
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      },
+    );
+  }
+}
+
+class _KejadianDetailWrapper extends StatefulWidget {
+  final int id;
+  const _KejadianDetailWrapper({required this.id});
+  @override State<_KejadianDetailWrapper> createState() => _KejadianDetailWrapperState();
+}
+
+class _KejadianDetailWrapperState extends State<_KejadianDetailWrapper> {
+  @override
+  void initState() { super.initState(); context.read<KejadianBloc>().add(KejadianLoadRequested()); }
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<KejadianBloc, KejadianState>(
+      builder: (ctx, state) {
+        if (state is KejadianLoaded) {
+          final item = state.items.where((k) => k.id == widget.id).isNotEmpty
+              ? state.items.firstWhere((k) => k.id == widget.id)
+              : null;
+          if (item != null) return KejadianDetailScreen(item: item);
+        }
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      },
+    );
+  }
+}
+
+class _PenyewaanDetailWrapper extends StatefulWidget {
+  final int id;
+  const _PenyewaanDetailWrapper({required this.id});
+  @override State<_PenyewaanDetailWrapper> createState() => _PenyewaanDetailWrapperState();
+}
+
+class _PenyewaanDetailWrapperState extends State<_PenyewaanDetailWrapper> {
+  @override
+  void initState() { super.initState(); context.read<PenyewaanBloc>().add(PenyewaanLoadRequested()); }
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<PenyewaanBloc, PenyewaanState>(
+      builder: (ctx, state) {
+        if (state is PenyewaanLoaded) {
+          final item = state.items.where((k) => k.id == widget.id).isNotEmpty
+              ? state.items.firstWhere((k) => k.id == widget.id)
+              : null;
+          if (item != null) return PenyewaanDetailScreen(item: item);
         }
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },

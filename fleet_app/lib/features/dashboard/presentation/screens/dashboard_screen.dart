@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/dark_theme.dart';
+import '../../../../core/theme/theme_notifier.dart';
 import '../../../../shared/widgets/stat_card.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../kendaraan/presentation/bloc/kendaraan_bloc.dart';
@@ -37,6 +38,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text('Fleet Management'),
         actions: [
+          ValueListenableBuilder<ThemeMode>(
+            valueListenable: themeNotifier,
+            builder: (context, mode, _) {
+              final isDark = mode == ThemeMode.dark;
+              return IconButton(
+                tooltip: isDark ? 'Mode Terang' : 'Mode Gelap',
+                icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+                onPressed: () {
+                  themeNotifier.value =
+                      isDark ? ThemeMode.light : ThemeMode.dark;
+                },
+              );
+            },
+          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.account_circle_outlined),
             itemBuilder: (_) => [

@@ -111,7 +111,10 @@ class _DetailKendaraanListScreenState extends State<DetailKendaraanListScreen> {
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (_, i) {
                   final item = state.items[i];
-                  return Container(
+                  return InkWell(
+                    onTap: () => context.push('/detail-kendaraan/${item.id}'),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                         color: AppTheme.surface,
@@ -160,6 +163,7 @@ class _DetailKendaraanListScreenState extends State<DetailKendaraanListScreen> {
                         ),
                       ],
                     ),
+                  ),
                   );
                 },
               );

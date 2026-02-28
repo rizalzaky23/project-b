@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/dark_theme.dart';
+import 'core/theme/theme_notifier.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'injection_container.dart';
 import 'router.dart';
@@ -25,12 +26,18 @@ class FleetApp extends StatelessWidget {
     return BlocProvider.value(
       // Gunakan singleton yang sama, BUKAN buat instance baru
       value: sl<AuthBloc>(),
-      child: MaterialApp.router(
-        title: 'Fleet Management',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
-        routerConfig: appRouter,
+      child: ValueListenableBuilder<ThemeMode>(
+        valueListenable: themeNotifier,
+        builder: (context, currentMode, _) {
+          return MaterialApp.router(
+            title: 'Fleet Management',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: currentMode,
+            routerConfig: appRouter,
+          );
+        },
       ),
     );
   }

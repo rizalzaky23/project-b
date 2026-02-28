@@ -60,17 +60,6 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
           },
         ),
         // ------------------------------------
-
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: AppTheme.primary),
-            onPressed: () {
-              final id = widget.kendaraanId;
-              context.push('/kejadian/create${id != null ? '?kendaraan_id=$id' : ''}');
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: BlocListener<KejadianBloc, KejadianState>(
         listener: (ctx, state) {
@@ -108,7 +97,10 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (_, i) {
                   final item = state.items[i];
-                  return Container(
+                  return InkWell(
+                    onTap: () => context.push('/kejadian/${item.id}'),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                         color: AppTheme.surface,
@@ -164,6 +156,7 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
                                 }),
                           ]),
                         ]),
+                  ),
                   );
                 },
               );
@@ -171,6 +164,12 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
             return const SizedBox();
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/kejadian/create',
+            extra: {'kendaraanId': widget.kendaraanId}),
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah'),
       ),
     );
   }

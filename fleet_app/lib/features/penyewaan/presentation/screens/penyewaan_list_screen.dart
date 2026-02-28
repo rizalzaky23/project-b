@@ -64,17 +64,6 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
           },
         ),
         // ------------------------------------
-
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: AppTheme.primary),
-            onPressed: () {
-              final id = widget.kendaraanId;
-              context.push('/penyewaan/create${id != null ? '?kendaraan_id=$id' : ''}');
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: BlocListener<PenyewaanBloc, PenyewaanState>(
         listener: (ctx, state) {
@@ -116,7 +105,10 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
                       selesai != null &&
                       now.isAfter(mulai) &&
                       now.isBefore(selesai);
-                  return Container(
+                  return InkWell(
+                    onTap: () => context.push('/penyewaan/${item.id}'),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                         color: AppTheme.surface,
@@ -209,6 +201,7 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
                                 }),
                           ]),
                         ]),
+                  ),
                   );
                 },
               );
@@ -216,6 +209,11 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
             return const SizedBox();
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/penyewaan/create'),
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah'),
       ),
     );
   }
