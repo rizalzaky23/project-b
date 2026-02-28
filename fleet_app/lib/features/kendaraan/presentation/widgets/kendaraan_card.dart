@@ -4,7 +4,7 @@ import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
 import '../../domain/entities/kendaraan_entity.dart';
 
-class KendaraanCard extends StatelessWidget {
+class KendaraanCard extends StatefulWidget {
   final KendaraanEntity kendaraan;
   final VoidCallback onTap;
   final VoidCallback onEdit;
@@ -19,223 +19,240 @@ class KendaraanCard extends StatelessWidget {
   });
 
   @override
+  State<KendaraanCard> createState() => _KendaraanCardState();
+}
+
+class _KendaraanCardState extends State<KendaraanCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pressCtrl;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _pressCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 100));
+    _scale = Tween<double>(begin: 1.0, end: 0.97)
+        .animate(CurvedAnimation(parent: _pressCtrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _pressCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Ambil lebar layar untuk scaling
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Breakpoint: phone kecil < 360, normal 360–599, tablet >= 600
-    final isSmallPhone = screenWidth < 360;
-    final isTablet = screenWidth >= 600;
-
-    final double cardHeight = isTablet
-        ? 120
-        : isSmallPhone
-            ? 90
-            : 106;
-    final double photoWidth = isTablet
-        ? 130
-        : isSmallPhone
-            ? 80
-            : 110;
-    final double titleFontSize = isTablet
-        ? 15
-        : isSmallPhone
-            ? 12
-            : 14;
-    final double subFontSize = isTablet
-        ? 13
-        : isSmallPhone
-            ? 10
-            : 12;
-    final double chipFontSize = isTablet
-        ? 12
-        : isSmallPhone
-            ? 9
-            : 11;
-    final double iconSize = isTablet ? 22 : 20;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-      onTap: onTap,
-      child: Align(
-        alignment: Alignment.topCenter,
+      onTapDown: (_) => _pressCtrl.forward(),
+      onTapUp: (_) {
+        _pressCtrl.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _pressCtrl.reverse(),
+      child: ScaleTransition(
+        scale: _scale,
         child: Container(
-          height: cardHeight,
           decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.divider),
-          ),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildPhoto(photoWidth, cardHeight),
-                  Expanded(
-                    child: _buildInfo(
-                      context,
-                      titleFontSize: titleFontSize,
-                      subFontSize: subFontSize,
-                      chipFontSize: chipFontSize,
-                    ),
-                  ),
-                  _buildActions(context, iconSize: iconSize),
-                ],
-              ),
-              // Badge ID
-              Positioned(
-                top: -13,
-                right: -13,
-                child: Container(
-                  constraints: BoxConstraints(minWidth: isTablet ? 60 : 52),
-                  height: isTablet ? 30 : 26,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary,
-                    borderRadius: BorderRadius.circular(13),
-                    border: Border.all(color: AppTheme.surface, width: 2),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'ID = ${kendaraan.id}',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: isTablet ? 11 : 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ),
-                ),
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: AppTheme.primary.withOpacity(0.18),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primary.withOpacity(isDark ? 0.08 : 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Photo area
+                _buildPhotoSection(),
+                // Info area
+                _buildInfoSection(context),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPhoto(double width, double height) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(12),
-        bottomLeft: Radius.circular(12),
-      ),
-      child: SizedBox(
-        width: width,
-        height: height,
-        child: kendaraan.fotoDepan != null
-            ? CachedNetworkImage(
-                imageUrl: kendaraan.fotoDepan!,
-                fit: BoxFit.cover,
-                placeholder: (_, __) =>
-                    Container(color: AppTheme.surfaceVariant),
-                errorWidget: (_, __, ___) => _placeholderIcon(),
-              )
-            : _placeholderIcon(),
-      ),
+  Widget _buildPhotoSection() {
+    return Stack(
+      children: [
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: widget.kendaraan.fotoDepan != null
+              ? CachedNetworkImage(
+                  imageUrl: widget.kendaraan.fotoDepan!,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => _photoPlaceholder(),
+                  errorWidget: (_, __, ___) => _photoPlaceholder(),
+                )
+              : _photoPlaceholder(),
+        ),
+        // ID badge top-right
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppTheme.primary,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primary.withOpacity(0.4),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              'ID ${widget.kendaraan.id}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+        ),
+        // Kode kendaraan bottom-left
+        Positioned(
+          bottom: 8,
+          left: 8,
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.65),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              widget.kendaraan.kodeKendaraan,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _placeholderIcon() {
+  Widget _photoPlaceholder() {
     return Container(
       color: AppTheme.surfaceVariant,
-      child: const Icon(Icons.directions_car_outlined,
-          color: AppTheme.textSecondary, size: 36),
+      child: const Center(
+        child: Icon(Icons.directions_car_outlined,
+            color: AppTheme.textSecondary, size: 40),
+      ),
     );
   }
 
-  Widget _buildInfo(
-    BuildContext context, {
-    required double titleFontSize,
-    required double subFontSize,
-    required double chipFontSize,
-  }) {
+  Widget _buildInfoSection(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            '${kendaraan.merk} ${kendaraan.tipe}',
-            style: TextStyle(
-              color: AppTheme.onSurface,
-              fontWeight: FontWeight.w600,
-              fontSize: titleFontSize,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 3),
-          Text(
-            kendaraan.noChasis,
-            style: TextStyle(
-              color: AppTheme.primary,
-              fontSize: subFontSize,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 4),
+          // Nama kendaraan + actions
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Flexible(
-                child: _InfoChip(
-                  label: kendaraan.warna,
-                  icon: Icons.palette_outlined,
-                  fontSize: chipFontSize,
+              Expanded(
+                child: Text(
+                  '${widget.kendaraan.merk} ${widget.kendaraan.tipe}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    letterSpacing: -0.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              // Edit & Delete tightly packed
+              GestureDetector(
+                onTap: widget.onEdit,
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(Icons.edit_outlined,
+                      size: 14, color: AppTheme.primary),
                 ),
               ),
               const SizedBox(width: 6),
-              Flexible(
-                child: _InfoChip(
-                  label: kendaraan.tahunPembuatan.toString(),
-                  icon: Icons.calendar_today_outlined,
-                  fontSize: chipFontSize,
+              GestureDetector(
+                onTap: widget.onDelete,
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: AppTheme.error.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(Icons.delete_outline,
+                      size: 14, color: AppTheme.error),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
+          // No. Chasis
           Text(
-            FormatHelper.currency(kendaraan.hargaPerolehan),
-            style: TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: subFontSize,
+            widget.kendaraan.noChasis,
+            style: const TextStyle(
+                color: AppTheme.primary,
+                fontSize: 11,
+                fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 6),
+          // Warna & Tahun chips
+          Row(
+            children: [
+              _Chip(
+                icon: Icons.palette_outlined,
+                label: widget.kendaraan.warna,
+              ),
+              const SizedBox(width: 6),
+              _Chip(
+                icon: Icons.calendar_today_outlined,
+                label: widget.kendaraan.tahunPembuatan.toString(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // Harga
+          Text(
+            FormatHelper.currency(widget.kendaraan.hargaPerolehan),
+            style: const TextStyle(
+              color: AppTheme.secondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActions(BuildContext context, {required double iconSize}) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 6),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(Icons.edit_outlined,
-                size: iconSize, color: AppTheme.primary),
-            onPressed: onEdit,
-            tooltip: 'Edit',
-            padding: const EdgeInsets.all(6),
-            constraints: const BoxConstraints(),
-          ),
-          const SizedBox(height: 6),
-          IconButton(
-            icon: Icon(Icons.delete_outline,
-                size: iconSize, color: AppTheme.error),
-            onPressed: onDelete,
-            tooltip: 'Hapus',
-            padding: const EdgeInsets.all(6),
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -243,38 +260,32 @@ class KendaraanCard extends StatelessWidget {
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  final String label;
+class _Chip extends StatelessWidget {
   final IconData icon;
-  final double fontSize;
+  final String label;
 
-  const _InfoChip({
-    required this.label,
-    required this.icon,
-    required this.fontSize,
-  });
+  const _Chip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceVariant,
-        borderRadius: BorderRadius.circular(4),
+        color: AppTheme.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.primary.withOpacity(0.15)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: fontSize - 1, color: AppTheme.textSecondary),
+          Icon(icon, size: 10, color: AppTheme.primary),
           const SizedBox(width: 3),
-          Flexible(
-            child: Text(
-              label,
-              style:
-                  TextStyle(color: AppTheme.textSecondary, fontSize: fontSize),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+          Text(
+            label,
+            style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 10,
+                fontWeight: FontWeight.w500),
           ),
         ],
       ),

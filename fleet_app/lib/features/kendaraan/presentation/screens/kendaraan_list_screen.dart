@@ -41,70 +41,92 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
   }
 
   void _onSearch(String value) {
+    setState(() {});
     context.read<KendaraanBloc>().add(KendaraanLoadRequested(search: value));
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width > 768;
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width >= 600 && size.width < 1024;
+    final isDesktop = size.width >= 1024;
+    final hPad = isDesktop ? 48.0 : isTablet ? 24.0 : 16.0;
+
+    // Responsive grid columns
+    final int crossAxisCount = isDesktop ? 4 : isTablet ? 3 : 2;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kendaraan'),
-
-        // --- TAMBAHKAN BAGIAN LEADING INI ---
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                    colors: [AppTheme.primary, Color(0xFF8B84FF)]),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: const Icon(Icons.directions_car_rounded,
+                  color: Colors.white, size: 16),
+            ),
+            const SizedBox(width: 10),
+            const Text('Kendaraan'),
+          ],
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop(); // Kembali ke tumpukan halaman sebelumnya
-            } else {
-              // Jika halaman ini dibuka dari menu utama tanpa riwayat tumpukan,
-              // arahkan paksa ke halaman Dashboard/Home.
-              // Ganti '/home' dengan rute menu utama aplikasi Anda.
-              context.go('/dashboard');
-            }
-          },
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/dashboard'),
         ),
-        // ------------------------------------
       ),
       body: BlocListener<KendaraanBloc, KendaraanState>(
         listener: (context, state) {
           if (state is KendaraanActionSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: AppTheme.success),
-            );
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppTheme.success));
             context.read<KendaraanBloc>().add(KendaraanLoadRequested());
           } else if (state is KendaraanActionError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text(state.failure.message),
-                  backgroundColor: AppTheme.error),
-            );
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(state.failure.message),
+                backgroundColor: AppTheme.error));
           }
         },
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
+            // Search bar
+            Container(
+              padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                    bottom:
+                        BorderSide(color: Theme.of(context).dividerColor)),
+              ),
               child: TextField(
                 controller: _searchController,
                 onChanged: _onSearch,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Cari kendaraan...',
-                  prefixIcon: Icon(Icons.search),
-                  suffixIcon: null,
+                  prefixIcon: const Icon(Icons.search,
+                      color: AppTheme.primary, size: 20),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            _onSearch('');
+                          },
+                        )
+                      : null,
                 ),
               ),
             ),
+            // Content
             Expanded(
               child: BlocBuilder<KendaraanBloc, KendaraanState>(
                 builder: (context, state) {
-                  if (state is KendaraanLoading) {
-                    return const AppLoading();
-                  }
+                  if (state is KendaraanLoading) return const AppLoading();
                   if (state is KendaraanError) {
                     return EmptyState(
                       message: state.failure.message,
@@ -124,23 +146,76 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                     return Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding:
+                              EdgeInsets.fromLTRB(hPad, 12, hPad, 4),
                           child: Row(
                             children: [
+                              Container(
+                                width: 4, height: 16,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      AppTheme.primary,
+                                      AppTheme.secondary
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
                               Text(
                                 '${state.meta.total} kendaraan',
                                 style: const TextStyle(
                                     color: AppTheme.textSecondary,
-                                    fontSize: 13),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 8),
                         Expanded(
-                          child: isDesktop
-                              ? _buildGrid(state, crossAxisCount: 3)
-                              : _buildList(state),
+                          child: GridView.builder(
+                            controller: _scrollController,
+                            padding:
+                                EdgeInsets.fromLTRB(hPad, 8, hPad, 100),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: crossAxisCount,
+                              // Let height be determined by content
+                              childAspectRatio: isDesktop
+                                  ? 0.78
+                                  : isTablet
+                                      ? 0.76
+                                      : 0.74,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                            ),
+                            itemCount: state.items.length,
+                            itemBuilder: (context, index) {
+                              final item = state.items[index];
+                              return KendaraanCard(
+                                kendaraan: item,
+                                onTap: () =>
+                                    context.push('/kendaraan/${item.id}'),
+                                onEdit: () => context
+                                    .push('/kendaraan/${item.id}/edit'),
+                                onDelete: () async {
+                                  final confirm = await showConfirmDialog(
+                                    context,
+                                    title: 'Hapus Kendaraan',
+                                    message:
+                                        'Yakin ingin menghapus ${item.merk} ${item.tipe}?',
+                                  );
+                                  if (confirm && context.mounted) {
+                                    context.read<KendaraanBloc>().add(
+                                        KendaraanDeleteRequested(item.id));
+                                  }
+                                },
+                              );
+                            },
+                          ),
                         ),
                         if (state.isLoadingMore)
                           const Padding(
@@ -161,70 +236,9 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
         onPressed: () => context.push('/kendaraan/create'),
         icon: const Icon(Icons.add),
         label: const Text('Tambah'),
+        backgroundColor: AppTheme.primary,
+        foregroundColor: Colors.white,
       ),
-    );
-  }
-
-  Widget _buildList(KendaraanLoaded state) {
-    return ListView.separated(
-      controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-      itemCount: state.items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final item = state.items[index];
-        return KendaraanCard(
-          kendaraan: item,
-          onTap: () => context.push('/kendaraan/${item.id}'),
-          onEdit: () => context.push('/kendaraan/${item.id}/edit'),
-          onDelete: () async {
-            final confirm = await showConfirmDialog(
-              context,
-              title: 'Hapus Kendaraan',
-              message: 'Yakin ingin menghapus ${item.merk} ${item.tipe}?',
-            );
-            if (confirm && context.mounted) {
-              context
-                  .read<KendaraanBloc>()
-                  .add(KendaraanDeleteRequested(item.id));
-            }
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildGrid(KendaraanLoaded state, {required int crossAxisCount}) {
-    return GridView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        childAspectRatio: 1.6,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: state.items.length,
-      itemBuilder: (context, index) {
-        final item = state.items[index];
-        return KendaraanCard(
-          kendaraan: item,
-          onTap: () => context.push('/kendaraan/${item.id}'),
-          onEdit: () => context.push('/kendaraan/${item.id}/edit'),
-          onDelete: () async {
-            final confirm = await showConfirmDialog(
-              context,
-              title: 'Hapus Kendaraan',
-              message: 'Yakin ingin menghapus ${item.merk} ${item.tipe}?',
-            );
-            if (confirm && context.mounted) {
-              context
-                  .read<KendaraanBloc>()
-                  .add(KendaraanDeleteRequested(item.id));
-            }
-          },
-        );
-      },
     );
   }
 }
