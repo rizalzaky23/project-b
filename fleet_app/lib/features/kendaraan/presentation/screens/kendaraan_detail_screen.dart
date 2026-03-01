@@ -51,7 +51,7 @@ class KendaraanDetailScreen extends StatelessWidget {
                   color: AppTheme.primary, size: 18),
             ),
             onPressed: () =>
-                context.push('/kendaraan/${kendaraan.id}/edit'),
+                context.push('/kendaraan/${kendaraan.id}/edit', extra: kendaraan),
           ),
           const SizedBox(width: 8),
         ],

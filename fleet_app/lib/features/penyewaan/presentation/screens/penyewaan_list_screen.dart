@@ -49,7 +49,12 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
     final isDesktop = size.width >= 1024;
     final hPad = isDesktop ? 48.0 : isTablet ? 24.0 : 16.0;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) context.go('/dashboard');
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
@@ -82,7 +87,7 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
           // Filter toggle
           Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: PopupMenuButton<bool?>(
+            child: PopupMenuButton<String>(
               icon: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
@@ -112,12 +117,12 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
                 ),
               ),
               itemBuilder: (_) => [
-                const PopupMenuItem(value: null, child: Text('Semua')),
-                const PopupMenuItem(value: true, child: Text('Aktif')),
-                const PopupMenuItem(value: false, child: Text('Selesai')),
+                const PopupMenuItem(value: 'semua', child: Text('Semua')),
+                const PopupMenuItem(value: 'aktif', child: Text('Aktif')),
+                const PopupMenuItem(value: 'selesai', child: Text('Selesai')),
               ],
               onSelected: (v) {
-                setState(() => _filterAktif = v);
+                setState(() => _filterAktif = v == 'semua' ? null : v == 'aktif');
                 _reload();
               },
             ),
@@ -147,7 +152,19 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
                   onRetry: _reload);
             }
             if (state is PenyewaanLoaded) {
-              if (state.items.isEmpty) {
+              final now = DateTime.now();
+              final filteredItems = _filterAktif == null
+                  ? state.items
+                  : state.items.where((item) {
+                      final mulai = DateTime.tryParse(item.tanggalMulai);
+                      final selesai = DateTime.tryParse(item.tanggalSelesai);
+                      final isActive = mulai != null &&
+                          selesai != null &&
+                          now.isAfter(mulai) &&
+                          now.isBefore(selesai);
+                      return _filterAktif! ? isActive : !isActive;
+                    }).toList();
+              if (filteredItems.isEmpty) {
                 return const EmptyState(
                     message: 'Belum ada data penyewaan',
                     icon: Icons.assignment_outlined);
@@ -155,11 +172,10 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
               return ListView.separated(
                 controller: _scrollController,
                 padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 80),
-                itemCount: state.items.length,
+                itemCount: filteredItems.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (_, i) {
-                  final item = state.items[i];
-                  final now = DateTime.now();
+                  final item = filteredItems[i];
                   final selesai = DateTime.tryParse(item.tanggalSelesai);
                   final mulai = DateTime.tryParse(item.tanggalMulai);
                   final isActive = mulai != null &&
@@ -173,7 +189,7 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
                       : [AppTheme.textSecondary, AppTheme.textSecondary];
 
                   return InkWell(
-                    onTap: () => context.push('/penyewaan/${item.id}'),
+                    onTap: () => context.push('/penyewaan/${item.id}', extra: item),
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
                       padding: const EdgeInsets.all(16),
@@ -318,8 +334,10 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
                               IconButton(
                                   icon: const Icon(Icons.edit_outlined,
                                       color: AppTheme.primary, size: 20),
-                                  onPressed: () =>
-                                      ctx.push('/penyewaan/${item.id}/edit'),
+                                  onPressed: () async {
+                                    await ctx.push('/penyewaan/${item.id}/edit', extra: item);
+                                    if (ctx.mounted) _reload();
+                                  },
                                   padding: const EdgeInsets.all(6),
                                   constraints: const BoxConstraints()),
                               const SizedBox(height: 4),
@@ -353,12 +371,16 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/penyewaan/create'),
+        onPressed: () async {
+          await context.push('/penyewaan/create', extra: {'kendaraanId': widget.kendaraanId});
+          if (mounted) _reload();
+        },
         icon: const Icon(Icons.add),
         label: const Text('Tambah'),
         backgroundColor: AppTheme.secondary,
         foregroundColor: Colors.white,
       ),
+    ),
     );
   }
 }

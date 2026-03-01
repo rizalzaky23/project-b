@@ -45,17 +45,28 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
     context.read<KendaraanBloc>().add(KendaraanLoadRequested(search: value));
   }
 
+  /// Navigasi ke form create, tunggu hasilnya, lalu refresh otomatis
+  Future<void> _goCreate() async {
+    await context.push('/kendaraan/create');
+    if (mounted) {
+      context.read<KendaraanBloc>().add(KendaraanLoadRequested());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isTablet = size.width >= 600 && size.width < 1024;
     final isDesktop = size.width >= 1024;
     final hPad = isDesktop ? 48.0 : isTablet ? 24.0 : 16.0;
-
-    // Responsive grid columns
     final int crossAxisCount = isDesktop ? 4 : isTablet ? 3 : 2;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) context.go('/dashboard');
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
@@ -85,6 +96,7 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(state.message),
                 backgroundColor: AppTheme.success));
+            // Refresh otomatis setelah aksi berhasil
             context.read<KendaraanBloc>().add(KendaraanLoadRequested());
           } else if (state is KendaraanActionError) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -94,7 +106,6 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
         },
         child: Column(
           children: [
-            // Search bar
             Container(
               padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 12),
               decoration: BoxDecoration(
@@ -122,7 +133,6 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                 ),
               ),
             ),
-            // Content
             Expanded(
               child: BlocBuilder<KendaraanBloc, KendaraanState>(
                 builder: (context, state) {
@@ -146,18 +156,14 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                     return Column(
                       children: [
                         Padding(
-                          padding:
-                              EdgeInsets.fromLTRB(hPad, 12, hPad, 4),
+                          padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 4),
                           child: Row(
                             children: [
                               Container(
                                 width: 4, height: 16,
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
-                                    colors: [
-                                      AppTheme.primary,
-                                      AppTheme.secondary
-                                    ],
+                                    colors: [AppTheme.primary, AppTheme.secondary],
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
                                   ),
@@ -178,12 +184,10 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                         Expanded(
                           child: GridView.builder(
                             controller: _scrollController,
-                            padding:
-                                EdgeInsets.fromLTRB(hPad, 8, hPad, 100),
+                            padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 100),
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: crossAxisCount,
-                              // Let height be determined by content
                               childAspectRatio: isDesktop
                                   ? 0.78
                                   : isTablet
@@ -197,10 +201,20 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                               final item = state.items[index];
                               return KendaraanCard(
                                 kendaraan: item,
-                                onTap: () =>
-                                    context.push('/kendaraan/${item.id}'),
-                                onEdit: () => context
-                                    .push('/kendaraan/${item.id}/edit'),
+                                // Pass entity via extra → tidak perlu load ulang
+                                onTap: () => context.push(
+                                    '/kendaraan/${item.id}',
+                                    extra: item),
+                                onEdit: () async {
+                                  await context.push(
+                                      '/kendaraan/${item.id}/edit',
+                                      extra: item);
+                                  // Refresh setelah kembali dari edit
+                                  if (context.mounted) {
+                                    context.read<KendaraanBloc>().add(
+                                        KendaraanLoadRequested());
+                                  }
+                                },
                                 onDelete: () async {
                                   final confirm = await showConfirmDialog(
                                     context,
@@ -233,12 +247,13 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/kendaraan/create'),
+        onPressed: _goCreate,
         icon: const Icon(Icons.add),
         label: const Text('Tambah'),
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
       ),
+    ),
     );
   }
 }

@@ -64,7 +64,7 @@ class AsuransiDetailScreen extends StatelessWidget {
               child: const Icon(Icons.edit_outlined,
                   color: AppTheme.primary, size: 18),
             ),
-            onPressed: () => context.push('/asuransi/${item.id}/edit'),
+            onPressed: () => context.push('/asuransi/${item.id}/edit', extra: item),
           ),
           const SizedBox(width: 8),
         ],

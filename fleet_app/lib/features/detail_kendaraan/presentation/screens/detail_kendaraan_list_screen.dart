@@ -48,7 +48,12 @@ class _DetailKendaraanListScreenState
     final isDesktop = size.width >= 1024;
     final hPad = isDesktop ? 48.0 : isTablet ? 24.0 : 16.0;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) context.go('/dashboard');
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
@@ -103,10 +108,10 @@ class _DetailKendaraanListScreenState
                   ],
                 ),
               ),
-              onPressed: () {
+              onPressed: () async {
                 final id = widget.kendaraanId;
-                context.push(
-                    '/detail-kendaraan/create${id != null ? '?kendaraan_id=$id' : ''}');
+                await context.push('/detail-kendaraan/create${id != null ? '?kendaraan_id=\$id' : ''}');
+                if (context.mounted) context.read<DetailKendaraanBloc>().add(DetailKendaraanLoadRequested(kendaraanId: widget.kendaraanId));
               },
             ),
           ),
@@ -151,8 +156,7 @@ class _DetailKendaraanListScreenState
                 itemBuilder: (_, i) {
                   final item = state.items[i];
                   return InkWell(
-                    onTap: () =>
-                        context.push('/detail-kendaraan/${item.id}'),
+                    onTap: () => context.push('/detail-kendaraan/${item.id}', extra: item),
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
                       padding: const EdgeInsets.all(16),
@@ -240,8 +244,10 @@ class _DetailKendaraanListScreenState
                               IconButton(
                                   icon: const Icon(Icons.edit_outlined,
                                       color: AppTheme.primary, size: 20),
-                                  onPressed: () => context.push(
-                                      '/detail-kendaraan/${item.id}/edit'),
+                                  onPressed: () async {
+                                    await context.push('/detail-kendaraan/${item.id}/edit', extra: item);
+                                    if (context.mounted) context.read<DetailKendaraanBloc>().add(DetailKendaraanLoadRequested(kendaraanId: widget.kendaraanId));
+                                  },
                                   padding: const EdgeInsets.all(6),
                                   constraints: const BoxConstraints()),
                               const SizedBox(height: 4),
@@ -275,6 +281,7 @@ class _DetailKendaraanListScreenState
           },
         ),
       ),
+    ),
     );
   }
 }

@@ -45,7 +45,12 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
     final isDesktop = size.width >= 1024;
     final hPad = isDesktop ? 48.0 : isTablet ? 24.0 : 16.0;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) context.go('/dashboard');
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
@@ -114,7 +119,7 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
                 itemBuilder: (_, i) {
                   final item = state.items[i];
                   return InkWell(
-                    onTap: () => context.push('/kejadian/${item.id}'),
+                    onTap: () => context.push('/kejadian/${item.id}', extra: item),
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
                       padding: const EdgeInsets.all(16),
@@ -191,8 +196,10 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
                               IconButton(
                                   icon: const Icon(Icons.edit_outlined,
                                       color: AppTheme.primary, size: 20),
-                                  onPressed: () =>
-                                      ctx.push('/kejadian/${item.id}/edit'),
+                                  onPressed: () async {
+                                    await ctx.push('/kejadian/${item.id}/edit', extra: item);
+                                    if (ctx.mounted) ctx.read<KejadianBloc>().add(KejadianLoadRequested(kendaraanId: widget.kendaraanId));
+                                  },
                                   padding: const EdgeInsets.all(6),
                                   constraints: const BoxConstraints()),
                               const SizedBox(height: 4),
@@ -225,13 +232,16 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/kejadian/create',
-            extra: {'kendaraanId': widget.kendaraanId}),
+        onPressed: () async {
+          await context.push('/kejadian/create', extra: {'kendaraanId': widget.kendaraanId});
+          if (mounted) context.read<KejadianBloc>().add(KejadianLoadRequested(kendaraanId: widget.kendaraanId));
+        },
         icon: const Icon(Icons.add),
         label: const Text('Tambah'),
         backgroundColor: AppTheme.warning,
         foregroundColor: Colors.white,
       ),
+    ),
     );
   }
 }

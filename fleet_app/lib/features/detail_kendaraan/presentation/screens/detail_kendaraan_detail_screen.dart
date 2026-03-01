@@ -59,7 +59,7 @@ class DetailKendaraanDetailScreen extends StatelessWidget {
                   color: AppTheme.primary, size: 18),
             ),
             onPressed: () =>
-                context.push('/detail-kendaraan/${item.id}/edit'),
+                context.push('/detail-kendaraan/${item.id}/edit', extra: item),
           ),
           const SizedBox(width: 8),
         ],

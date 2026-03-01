@@ -20,7 +20,7 @@ class PenyewaanRemoteDataSourceImpl implements PenyewaanRemoteDataSource {
     final params = <String, dynamic>{'page': page};
     if (kendaraanId != null) params['kendaraan_id'] = kendaraanId;
     if (search != null && search.isNotEmpty) params['search'] = search;
-    if (aktif == true) params['aktif'] = 1;
+    if (aktif != null) params['aktif'] = aktif ? 1 : 0;
     final r = await _apiClient.get(ApiConstants.penyewaan, queryParameters: params);
     final body = r.data;
     return (

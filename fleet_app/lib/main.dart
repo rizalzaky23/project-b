@@ -12,7 +12,7 @@ void main() async {
   await initializeDateFormatting('id_ID', null);
   setupDependencies();
 
-  // Trigger AuthCheckRequested pada singleton AuthBloc setelah dependencies siap
+  // Trigger AuthCheckRequested pada singleton AuthBloc
   sl<AuthBloc>().add(AuthCheckRequested());
 
   runApp(const FleetApp());
@@ -24,7 +24,6 @@ class FleetApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      // Gunakan singleton yang sama, BUKAN buat instance baru
       value: sl<AuthBloc>(),
       child: ValueListenableBuilder<ThemeMode>(
         valueListenable: themeNotifier,
