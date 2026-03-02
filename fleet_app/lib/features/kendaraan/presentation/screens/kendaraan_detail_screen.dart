@@ -349,7 +349,7 @@ class KendaraanDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionHeader(
+          const _SectionHeader(
             icon: Icons.info_outline_rounded,
             label: 'Informasi Kendaraan',
             color: AppTheme.primary,
@@ -430,7 +430,7 @@ class KendaraanDetailScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionHeader(
+        const _SectionHeader(
           icon: Icons.link_rounded,
           label: 'Data Terkait',
           color: AppTheme.primary,

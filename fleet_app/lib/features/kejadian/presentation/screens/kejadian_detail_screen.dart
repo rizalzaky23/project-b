@@ -217,13 +217,13 @@ class KejadianDetailScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       Divider(color: dividerColor),
                       const SizedBox(height: 12),
-                      Row(
+                      const Row(
                         children: [
-                          const Icon(Icons.description_outlined,
+                          Icon(Icons.description_outlined,
                               size: 14,
                               color: AppTheme.textSecondary),
-                          const SizedBox(width: 4),
-                          const Text('Deskripsi',
+                          SizedBox(width: 4),
+                          Text('Deskripsi',
                               style: TextStyle(
                                   color: AppTheme.textSecondary,
                                   fontSize: 12)),

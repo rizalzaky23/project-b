@@ -59,12 +59,12 @@ class _TrialExpiredScreenState extends State<TrialExpiredScreen>
         child: Stack(
           children: [
             // Dekorasi lingkaran latar
-            Positioned(top: -80, right: -80,
+            const Positioned(top: -80, right: -80,
                 child: _DecoCircle(size: 300, opacity: 0.06)),
-            Positioned(bottom: -60, left: -60,
+            const Positioned(bottom: -60, left: -60,
                 child: _DecoCircle(size: 240, opacity: 0.05)),
             Positioned(top: size.height * 0.35, right: -40,
-                child: _DecoCircle(size: 120, opacity: 0.08)),
+                child: const _DecoCircle(size: 120, opacity: 0.08)),
 
             // Konten
             FadeTransition(
@@ -190,14 +190,14 @@ class _TrialExpiredScreenState extends State<TrialExpiredScreen>
       ),
       child: Column(
         children: [
-          _InfoRow(icon: Icons.directions_car_rounded,
+          const _InfoRow(icon: Icons.directions_car_rounded,
               label: 'Aplikasi', value: 'Fleet Management'),
           const Divider(color: Colors.white12, height: 20),
           _InfoRow(icon: Icons.timer_outlined,
               label: 'Durasi Trial',
               value: '${TrialService.instance.trialDays} hari'),
           const Divider(color: Colors.white12, height: 20),
-          _InfoRow(icon: Icons.highlight_off_rounded,
+          const _InfoRow(icon: Icons.highlight_off_rounded,
               label: 'Status',
               value: 'Kadaluarsa',
               valueColor: AppTheme.error),

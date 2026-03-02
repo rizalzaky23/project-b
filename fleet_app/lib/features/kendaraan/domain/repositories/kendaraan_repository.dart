@@ -46,6 +46,10 @@ abstract class KendaraanRepository {
     XFile? fotoKiri,
     XFile? fotoKanan,
     XFile? fotoBelakang,
+    bool fotoDepanDeleted,
+    bool fotoKiriDeleted,
+    bool fotoKananDeleted,
+    bool fotoBelakangDeleted,
   });
 
   Future<void> delete(int id);

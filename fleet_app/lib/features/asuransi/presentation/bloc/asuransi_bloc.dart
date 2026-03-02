@@ -24,7 +24,8 @@ class AsuransiCreateRequested extends AsuransiEvent {
 class AsuransiUpdateRequested extends AsuransiEvent {
   final int id; final String? perusahaanAsuransi, jenisAsuransi, tanggalMulai, tanggalAkhir, noPolis; final double? nilaiPremi, nilaiPertanggungan;
   final XFile? fotoDepan, fotoKiri, fotoKanan, fotoBelakang, fotoDashboard, fotoKm;
-  AsuransiUpdateRequested({required this.id, this.perusahaanAsuransi, this.jenisAsuransi, this.tanggalMulai, this.tanggalAkhir, this.noPolis, this.nilaiPremi, this.nilaiPertanggungan, this.fotoDepan, this.fotoKiri, this.fotoKanan, this.fotoBelakang, this.fotoDashboard, this.fotoKm});
+  final bool fotoDepanDeleted, fotoKiriDeleted, fotoKananDeleted, fotoBelakangDeleted, fotoDashboardDeleted, fotoKmDeleted;
+  AsuransiUpdateRequested({required this.id, this.perusahaanAsuransi, this.jenisAsuransi, this.tanggalMulai, this.tanggalAkhir, this.noPolis, this.nilaiPremi, this.nilaiPertanggungan, this.fotoDepan, this.fotoKiri, this.fotoKanan, this.fotoBelakang, this.fotoDashboard, this.fotoKm, this.fotoDepanDeleted = false, this.fotoKiriDeleted = false, this.fotoKananDeleted = false, this.fotoBelakangDeleted = false, this.fotoDashboardDeleted = false, this.fotoKmDeleted = false});
   @override List<Object?> get props => [id];
 }
 class AsuransiDeleteRequested extends AsuransiEvent {

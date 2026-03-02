@@ -22,9 +22,25 @@ class DetailKendaraanCreateRequested extends DetailKendaraanEvent {
   @override List<Object?> get props => [kendaraanId, noPolisi];
 }
 class DetailKendaraanUpdateRequested extends DetailKendaraanEvent {
-  final int id; final String? noPolisi, namaPemilik, berlakuMulai;
+  final int id;
+  final String? noPolisi, namaPemilik, berlakuMulai;
   final XFile? fotoStnk, fotoBpkb, fotoNomor, fotoKm;
-  DetailKendaraanUpdateRequested({required this.id, this.noPolisi, this.namaPemilik, this.berlakuMulai, this.fotoStnk, this.fotoBpkb, this.fotoNomor, this.fotoKm});
+  final bool fotoStnkDeleted, fotoBpkbDeleted, fotoNomorDeleted, fotoKmDeleted;
+
+  DetailKendaraanUpdateRequested({
+    required this.id,
+    this.noPolisi,
+    this.namaPemilik,
+    this.berlakuMulai,
+    this.fotoStnk,
+    this.fotoBpkb,
+    this.fotoNomor,
+    this.fotoKm,
+    this.fotoStnkDeleted = false,
+    this.fotoBpkbDeleted = false,
+    this.fotoNomorDeleted = false,
+    this.fotoKmDeleted = false,
+  });
   @override List<Object?> get props => [id];
 }
 class DetailKendaraanDeleteRequested extends DetailKendaraanEvent {
@@ -108,7 +124,20 @@ class DetailKendaraanBloc extends Bloc<DetailKendaraanEvent, DetailKendaraanStat
   Future<void> _onUpdate(DetailKendaraanUpdateRequested e, Emitter<DetailKendaraanState> emit) async {
     emit(DetailKendaraanActionLoading());
     try {
-      await _repo.update(id: e.id, noPolisi: e.noPolisi, namaPemilik: e.namaPemilik, berlakuMulai: e.berlakuMulai, fotoStnk: e.fotoStnk, fotoBpkb: e.fotoBpkb, fotoNomor: e.fotoNomor, fotoKm: e.fotoKm);
+      await _repo.update(
+        id: e.id,
+        noPolisi: e.noPolisi,
+        namaPemilik: e.namaPemilik,
+        berlakuMulai: e.berlakuMulai,
+        fotoStnk: e.fotoStnk,
+        fotoBpkb: e.fotoBpkb,
+        fotoNomor: e.fotoNomor,
+        fotoKm: e.fotoKm,
+        fotoStnkDeleted: e.fotoStnkDeleted,
+        fotoBpkbDeleted: e.fotoBpkbDeleted,
+        fotoNomorDeleted: e.fotoNomorDeleted,
+        fotoKmDeleted: e.fotoKmDeleted,
+      );
       emit(DetailKendaraanActionSuccess('Detail kendaraan berhasil diperbarui'));
     } catch (err) { emit(DetailKendaraanActionError(err is Failure ? err : ServerFailure(err.toString()))); }
   }

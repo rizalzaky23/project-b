@@ -55,6 +55,7 @@ class KendaraanUpdateRequested extends KendaraanEvent {
   final int? tahunPerolehan, tahunPembuatan;
   final double? hargaPerolehan;
   final XFile? fotoDepan, fotoKiri, fotoKanan, fotoBelakang;
+  final bool fotoDepanDeleted, fotoKiriDeleted, fotoKananDeleted, fotoBelakangDeleted;
 
   KendaraanUpdateRequested({
     required this.id,
@@ -72,6 +73,10 @@ class KendaraanUpdateRequested extends KendaraanEvent {
     this.fotoKiri,
     this.fotoKanan,
     this.fotoBelakang,
+    this.fotoDepanDeleted = false,
+    this.fotoKiriDeleted = false,
+    this.fotoKananDeleted = false,
+    this.fotoBelakangDeleted = false,
   });
 
   @override
@@ -236,6 +241,10 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
         fotoKiri: event.fotoKiri,
         fotoKanan: event.fotoKanan,
         fotoBelakang: event.fotoBelakang,
+        fotoDepanDeleted: event.fotoDepanDeleted,
+        fotoKiriDeleted: event.fotoKiriDeleted,
+        fotoKananDeleted: event.fotoKananDeleted,
+        fotoBelakangDeleted: event.fotoBelakangDeleted,
       );
       emit(KendaraanActionSuccess('Kendaraan berhasil diperbarui'));
     } catch (e) {

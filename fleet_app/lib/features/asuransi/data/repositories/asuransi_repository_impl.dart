@@ -11,7 +11,7 @@ class AsuransiRepositoryImpl implements AsuransiRepository {
   final AsuransiRemoteDataSource _remote;
   AsuransiRepositoryImpl(this._remote);
 
-  Future<FormData> _buildForm({int? kendaraanId, String? perusahaanAsuransi, String? jenisAsuransi, String? tanggalMulai, String? tanggalAkhir, String? noPolis, double? nilaiPremi, double? nilaiPertanggungan, XFile? fotoDepan, XFile? fotoKiri, XFile? fotoKanan, XFile? fotoBelakang, XFile? fotoDashboard, XFile? fotoKm}) async {
+  Future<FormData> _buildForm({int? kendaraanId, String? perusahaanAsuransi, String? jenisAsuransi, String? tanggalMulai, String? tanggalAkhir, String? noPolis, double? nilaiPremi, double? nilaiPertanggungan, XFile? fotoDepan, XFile? fotoKiri, XFile? fotoKanan, XFile? fotoBelakang, XFile? fotoDashboard, XFile? fotoKm, bool fotoDepanDeleted = false, bool fotoKiriDeleted = false, bool fotoKananDeleted = false, bool fotoBelakangDeleted = false, bool fotoDashboardDeleted = false, bool fotoKmDeleted = false}) async {
     final f = <String, dynamic>{};
     if (kendaraanId != null) f['kendaraan_id'] = kendaraanId.toString();
     if (perusahaanAsuransi != null) f['perusahaan_asuransi'] = perusahaanAsuransi;
@@ -22,9 +22,12 @@ class AsuransiRepositoryImpl implements AsuransiRepository {
     if (nilaiPremi != null) f['nilai_premi'] = nilaiPremi.toString();
     if (nilaiPertanggungan != null) f['nilai_pertanggungan'] = nilaiPertanggungan.toString();
     final formData = FormData.fromMap(f);
-    for (final e in [('foto_depan', fotoDepan), ('foto_kiri', fotoKiri), ('foto_kanan', fotoKanan), ('foto_belakang', fotoBelakang), ('foto_dashboard', fotoDashboard), ('foto_km', fotoKm)]) {
-      if (e.$2 != null) await addFileToForm(formData, e.$1, e.$2);
-    }
+    await addFileToForm(formData, 'foto_depan', fotoDepan, deleted: fotoDepanDeleted, deleteKey: 'delete_foto_depan');
+    await addFileToForm(formData, 'foto_kiri', fotoKiri, deleted: fotoKiriDeleted, deleteKey: 'delete_foto_kiri');
+    await addFileToForm(formData, 'foto_kanan', fotoKanan, deleted: fotoKananDeleted, deleteKey: 'delete_foto_kanan');
+    await addFileToForm(formData, 'foto_belakang', fotoBelakang, deleted: fotoBelakangDeleted, deleteKey: 'delete_foto_belakang');
+    await addFileToForm(formData, 'foto_dashboard', fotoDashboard, deleted: fotoDashboardDeleted, deleteKey: 'delete_foto_dashboard');
+    await addFileToForm(formData, 'foto_km', fotoKm, deleted: fotoKmDeleted, deleteKey: 'delete_foto_km');
     return formData;
   }
 
@@ -45,9 +48,9 @@ class AsuransiRepositoryImpl implements AsuransiRepository {
   }
 
   @override
-  Future<AsuransiEntity> update({required int id, String? perusahaanAsuransi, String? jenisAsuransi, String? tanggalMulai, String? tanggalAkhir, String? noPolis, double? nilaiPremi, double? nilaiPertanggungan, XFile? fotoDepan, XFile? fotoKiri, XFile? fotoKanan, XFile? fotoBelakang, XFile? fotoDashboard, XFile? fotoKm}) async {
+  Future<AsuransiEntity> update({required int id, String? perusahaanAsuransi, String? jenisAsuransi, String? tanggalMulai, String? tanggalAkhir, String? noPolis, double? nilaiPremi, double? nilaiPertanggungan, XFile? fotoDepan, XFile? fotoKiri, XFile? fotoKanan, XFile? fotoBelakang, XFile? fotoDashboard, XFile? fotoKm, bool fotoDepanDeleted = false, bool fotoKiriDeleted = false, bool fotoKananDeleted = false, bool fotoBelakangDeleted = false, bool fotoDashboardDeleted = false, bool fotoKmDeleted = false}) async {
     try {
-      final form = await _buildForm(perusahaanAsuransi: perusahaanAsuransi, jenisAsuransi: jenisAsuransi, tanggalMulai: tanggalMulai, tanggalAkhir: tanggalAkhir, noPolis: noPolis, nilaiPremi: nilaiPremi, nilaiPertanggungan: nilaiPertanggungan, fotoDepan: fotoDepan, fotoKiri: fotoKiri, fotoKanan: fotoKanan, fotoBelakang: fotoBelakang, fotoDashboard: fotoDashboard, fotoKm: fotoKm);
+      final form = await _buildForm(perusahaanAsuransi: perusahaanAsuransi, jenisAsuransi: jenisAsuransi, tanggalMulai: tanggalMulai, tanggalAkhir: tanggalAkhir, noPolis: noPolis, nilaiPremi: nilaiPremi, nilaiPertanggungan: nilaiPertanggungan, fotoDepan: fotoDepan, fotoKiri: fotoKiri, fotoKanan: fotoKanan, fotoBelakang: fotoBelakang, fotoDashboard: fotoDashboard, fotoKm: fotoKm, fotoDepanDeleted: fotoDepanDeleted, fotoKiriDeleted: fotoKiriDeleted, fotoKananDeleted: fotoKananDeleted, fotoBelakangDeleted: fotoBelakangDeleted, fotoDashboardDeleted: fotoDashboardDeleted, fotoKmDeleted: fotoKmDeleted);
       return await _remote.update(id, form);
     } on DioException catch (e) { throw ApiHelper.handleError(e); }
   }

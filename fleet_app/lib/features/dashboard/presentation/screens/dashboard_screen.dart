@@ -44,7 +44,33 @@ class _DashboardScreenState extends State<DashboardScreen>
         ? (context.read<AuthBloc>().state as AuthAuthenticated).user
         : null;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Keluar Aplikasi'),
+            content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Keluar', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        );
+        if (shouldExit == true && context.mounted) {
+          // ignore: use_build_context_synchronously
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       body: RefreshIndicator(
         onRefresh: () async => _refresh(),
         child: CustomScrollView(
@@ -68,7 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildSliverAppBar(BuildContext context, String name, bool isDesktop) {
@@ -171,17 +197,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                       childAspectRatio: ratio,
                       children: [
                         _StatCard(title: 'Total Kendaraan', value: '$total', icon: Icons.directions_car_rounded,
-                            color: AppTheme.primary, gradColors: [const Color(0xFF6C63FF), const Color(0xFF8B84FF)],
-                            onTap: () => context.go('/kendaraan'), delay: 0),
+                            color: AppTheme.primary, gradColors: const [Color(0xFF6C63FF), Color(0xFF8B84FF)],
+                            onTap: () => context.push('/kendaraan'), delay: 0),
                         _StatCard(title: 'Sewa Aktif', value: '$sewa', icon: Icons.assignment_rounded,
-                            color: AppTheme.secondary, gradColors: [const Color(0xFF03DAC6), const Color(0xFF00BFA5)],
-                            onTap: () => context.go('/penyewaan'), delay: 60),
+                            color: AppTheme.secondary, gradColors: const [Color(0xFF03DAC6), Color(0xFF00BFA5)],
+                            onTap: () => context.push('/penyewaan'), delay: 60),
                         _StatCard(title: 'Asuransi', value: '$asuransi', icon: Icons.health_and_safety_rounded,
-                            color: AppTheme.success, gradColors: [const Color(0xFF4CAF50), const Color(0xFF66BB6A)],
-                            onTap: () => context.go('/asuransi'), delay: 120),
+                            color: AppTheme.success, gradColors: const [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                            onTap: () => context.push('/asuransi'), delay: 120),
                         _StatCard(title: 'Kejadian', value: '$kejadian', icon: Icons.warning_rounded,
-                            color: AppTheme.warning, gradColors: [const Color(0xFFFF9800), const Color(0xFFFFB74D)],
-                            onTap: () => context.go('/kejadian'), delay: 180),
+                            color: AppTheme.warning, gradColors: const [Color(0xFFFF9800), Color(0xFFFFB74D)],
+                            onTap: () => context.push('/kejadian'), delay: 180),
                       ],
                     );
                   },
@@ -196,11 +222,11 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Widget _buildMenuSection(BuildContext context, bool isTablet, bool isDesktop) {
     final items = [
-      _NavItem('Kendaraan', Icons.directions_car_rounded, AppTheme.primary, '/kendaraan', 'Kelola armada'),
-      _NavItem('Detail Kendaraan', Icons.description_rounded, const Color(0xFF4DB6AC), '/detail-kendaraan', 'STNK & BPKB'),
-      _NavItem('Asuransi', Icons.health_and_safety_rounded, AppTheme.success, '/asuransi', 'Polis & premi'),
-      _NavItem('Kejadian', Icons.warning_rounded, AppTheme.warning, '/kejadian', 'Laporan insiden'),
-      _NavItem('Penyewaan', Icons.assignment_rounded, AppTheme.secondary, '/penyewaan', 'Kontrak sewa'),
+      const _NavItem('Kendaraan', Icons.directions_car_rounded, AppTheme.primary, '/kendaraan', 'Kelola armada'),
+      const _NavItem('Detail Kendaraan', Icons.description_rounded, Color(0xFF4DB6AC), '/detail-kendaraan', 'STNK & BPKB'),
+      const _NavItem('Asuransi', Icons.health_and_safety_rounded, AppTheme.success, '/asuransi', 'Polis & premi'),
+      const _NavItem('Kejadian', Icons.warning_rounded, AppTheme.warning, '/kejadian', 'Laporan insiden'),
+      const _NavItem('Penyewaan', Icons.assignment_rounded, AppTheme.secondary, '/penyewaan', 'Kontrak sewa'),
     ];
 
     final cols = isDesktop ? 5 : isTablet ? 5 : 3;
@@ -265,11 +291,11 @@ class _HeroBanner extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Positioned(top: -40, right: -40,
+          const Positioned(top: -40, right: -40,
               child: _DecoCircle(size: 160, opacity: 0.07)),
-          Positioned(bottom: -30, right: 60,
+          const Positioned(bottom: -30, right: 60,
               child: _DecoCircle(size: 100, opacity: 0.05)),
-          Positioned(top: 30, right: 130,
+          const Positioned(top: 30, right: 130,
               child: _DecoCircle(size: 55, opacity: 0.09)),
           Positioned(
             bottom: 30, left: 24, right: 24,
@@ -442,7 +468,7 @@ class _MenuCardState extends State<_MenuCard> with SingleTickerProviderStateMixi
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) => _pressCtrl.forward(),
-      onTapUp: (_) { _pressCtrl.reverse(); context.go(widget.item.route); },
+      onTapUp: (_) { _pressCtrl.reverse(); context.push(widget.item.route); },
       onTapCancel: () => _pressCtrl.reverse(),
       child: ScaleTransition(
         scale: _scale,

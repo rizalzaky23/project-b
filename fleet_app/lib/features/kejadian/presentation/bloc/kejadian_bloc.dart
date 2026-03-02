@@ -10,7 +10,27 @@ abstract class KejadianEvent extends Equatable { @override List<Object?> get pro
 class KejadianLoadRequested extends KejadianEvent { final int? kendaraanId; final String? search; KejadianLoadRequested({this.kendaraanId, this.search}); @override List<Object?> get props => [kendaraanId, search]; }
 class KejadianLoadMoreRequested extends KejadianEvent {}
 class KejadianCreateRequested extends KejadianEvent { final int kendaraanId; final String tanggal; final String? deskripsi; final XFile? fotoKm, foto1, foto2; KejadianCreateRequested({required this.kendaraanId, required this.tanggal, this.deskripsi, this.fotoKm, this.foto1, this.foto2}); @override List<Object?> get props => [kendaraanId, tanggal]; }
-class KejadianUpdateRequested extends KejadianEvent { final int id; final String? tanggal, deskripsi; final XFile? fotoKm, foto1, foto2; KejadianUpdateRequested({required this.id, this.tanggal, this.deskripsi, this.fotoKm, this.foto1, this.foto2}); @override List<Object?> get props => [id]; }
+
+class KejadianUpdateRequested extends KejadianEvent {
+  final int id;
+  final String? tanggal, deskripsi;
+  final XFile? fotoKm, foto1, foto2;
+  final bool fotoKmDeleted, foto1Deleted, foto2Deleted;
+
+  KejadianUpdateRequested({
+    required this.id,
+    this.tanggal,
+    this.deskripsi,
+    this.fotoKm,
+    this.foto1,
+    this.foto2,
+    this.fotoKmDeleted = false,
+    this.foto1Deleted = false,
+    this.foto2Deleted = false,
+  });
+  @override List<Object?> get props => [id];
+}
+
 class KejadianDeleteRequested extends KejadianEvent { final int id; KejadianDeleteRequested(this.id); @override List<Object?> get props => [id]; }
 
 abstract class KejadianState extends Equatable { @override List<Object?> get props => []; }
@@ -60,7 +80,20 @@ class KejadianBloc extends Bloc<KejadianEvent, KejadianState> {
 
   Future<void> _onUpdate(KejadianUpdateRequested e, Emitter<KejadianState> emit) async {
     emit(KejadianActionLoading());
-    try { await _repo.update(id: e.id, tanggal: e.tanggal, deskripsi: e.deskripsi, fotoKm: e.fotoKm, foto1: e.foto1, foto2: e.foto2); emit(KejadianActionSuccess('Kejadian berhasil diperbarui')); }
+    try {
+      await _repo.update(
+        id: e.id,
+        tanggal: e.tanggal,
+        deskripsi: e.deskripsi,
+        fotoKm: e.fotoKm,
+        foto1: e.foto1,
+        foto2: e.foto2,
+        fotoKmDeleted: e.fotoKmDeleted,
+        foto1Deleted: e.foto1Deleted,
+        foto2Deleted: e.foto2Deleted,
+      );
+      emit(KejadianActionSuccess('Kejadian berhasil diperbarui'));
+    }
     catch (err) { emit(KejadianActionError(err is Failure ? err : ServerFailure(err.toString()))); }
   }
 

@@ -272,15 +272,15 @@ class DetailKendaraanDetailScreen extends StatelessWidget {
                         children: [
                           if (item.fotoStnk != null &&
                               item.fotoStnk!.isNotEmpty)
-                            _DocChip('STNK', _tealColor),
+                            const _DocChip('STNK', _tealColor),
                           if (item.fotoBpkb != null &&
                               item.fotoBpkb!.isNotEmpty)
-                            _DocChip('BPKB', AppTheme.primary),
+                            const _DocChip('BPKB', AppTheme.primary),
                           if (item.fotoNomor != null &&
                               item.fotoNomor!.isNotEmpty)
-                            _DocChip('Nomor', AppTheme.secondary),
+                            const _DocChip('Nomor', AppTheme.secondary),
                           if (item.fotoKm != null && item.fotoKm!.isNotEmpty)
-                            _DocChip('KM', AppTheme.success),
+                            const _DocChip('KM', AppTheme.success),
                         ],
                       ),
                     ],

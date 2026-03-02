@@ -222,7 +222,7 @@ class AsuransiDetailScreen extends StatelessWidget {
                         Container(
                           width: 4, height: 20,
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(colors: [
+                            gradient: const LinearGradient(colors: [
                               AppTheme.success,
                               AppTheme.secondary,
                             ], begin: Alignment.topCenter, end: Alignment.bottomCenter),

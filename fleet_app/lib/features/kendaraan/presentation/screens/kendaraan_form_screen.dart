@@ -34,6 +34,11 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
   late final TextEditingController _dealerController;
 
   XFile? _fotoDepan, _fotoKiri, _fotoKanan, _fotoBelakang;
+  // Track foto yang dihapus user (agar bisa kirim sinyal hapus ke API)
+  bool _fotoDepanDeleted = false;
+  bool _fotoKiriDeleted = false;
+  bool _fotoKananDeleted = false;
+  bool _fotoBelakangDeleted = false;
 
   bool get _isEdit => widget.existing != null;
 
@@ -90,6 +95,10 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
         fotoKiri: _fotoKiri,
         fotoKanan: _fotoKanan,
         fotoBelakang: _fotoBelakang,
+        fotoDepanDeleted: _fotoDepanDeleted,
+        fotoKiriDeleted: _fotoKiriDeleted,
+        fotoKananDeleted: _fotoKananDeleted,
+        fotoBelakangDeleted: _fotoBelakangDeleted,
       ));
     } else {
       bloc.add(KendaraanCreateRequested(
@@ -305,6 +314,10 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
               label: 'Foto Depan',
               pickedFile: _fotoDepan,
               existingUrl: widget.existing?.fotoDepan,
+              onPhotoResult: (r) => setState(() {
+                _fotoDepan = r.hasPicked ? r.file : null;
+                _fotoDepanDeleted = r.isDeleted;
+              }),
               onChanged: (f) => setState(() => _fotoDepan = f),
             ),
           ),
@@ -314,6 +327,10 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
               label: 'Foto Kiri',
               pickedFile: _fotoKiri,
               existingUrl: widget.existing?.fotoKiri,
+              onPhotoResult: (r) => setState(() {
+                _fotoKiri = r.hasPicked ? r.file : null;
+                _fotoKiriDeleted = r.isDeleted;
+              }),
               onChanged: (f) => setState(() => _fotoKiri = f),
             ),
           ),
@@ -325,6 +342,10 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
               label: 'Foto Kanan',
               pickedFile: _fotoKanan,
               existingUrl: widget.existing?.fotoKanan,
+              onPhotoResult: (r) => setState(() {
+                _fotoKanan = r.hasPicked ? r.file : null;
+                _fotoKananDeleted = r.isDeleted;
+              }),
               onChanged: (f) => setState(() => _fotoKanan = f),
             ),
           ),
@@ -334,6 +355,10 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
               label: 'Foto Belakang',
               pickedFile: _fotoBelakang,
               existingUrl: widget.existing?.fotoBelakang,
+              onPhotoResult: (r) => setState(() {
+                _fotoBelakang = r.hasPicked ? r.file : null;
+                _fotoBelakangDeleted = r.isDeleted;
+              }),
               onChanged: (f) => setState(() => _fotoBelakang = f),
             ),
           ),

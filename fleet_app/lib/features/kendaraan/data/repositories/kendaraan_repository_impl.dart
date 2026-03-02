@@ -100,6 +100,10 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
     XFile? fotoKiri,
     XFile? fotoKanan,
     XFile? fotoBelakang,
+    bool fotoDepanDeleted = false,
+    bool fotoKiriDeleted = false,
+    bool fotoKananDeleted = false,
+    bool fotoBelakangDeleted = false,
   }) async {
     try {
       final formData = await _buildFormData(
@@ -117,6 +121,10 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
         fotoKiri: fotoKiri,
         fotoKanan: fotoKanan,
         fotoBelakang: fotoBelakang,
+        fotoDepanDeleted: fotoDepanDeleted,
+        fotoKiriDeleted: fotoKiriDeleted,
+        fotoKananDeleted: fotoKananDeleted,
+        fotoBelakangDeleted: fotoBelakangDeleted,
       );
       return await _remote.update(id, formData);
     } on DioException catch (e) {
@@ -148,6 +156,10 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
     XFile? fotoKiri,
     XFile? fotoKanan,
     XFile? fotoBelakang,
+    bool fotoDepanDeleted = false,
+    bool fotoKiriDeleted = false,
+    bool fotoKananDeleted = false,
+    bool fotoBelakangDeleted = false,
   }) async {
     final fields = <String, dynamic>{};
     if (kodeKendaraan != null) fields['kode_kendaraan'] = kodeKendaraan;
@@ -163,14 +175,14 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
 
     final formData = FormData.fromMap(fields);
 
-    Future<void> addPhoto(String key, XFile? file) async {
-      await addFileToForm(formData, key, file);
-    }
-
-    await addPhoto('foto_depan', fotoDepan);
-    await addPhoto('foto_kiri', fotoKiri);
-    await addPhoto('foto_kanan', fotoKanan);
-    await addPhoto('foto_belakang', fotoBelakang);
+    await addFileToForm(formData, 'foto_depan', fotoDepan,
+        deleted: fotoDepanDeleted, deleteKey: 'delete_foto_depan');
+    await addFileToForm(formData, 'foto_kiri', fotoKiri,
+        deleted: fotoKiriDeleted, deleteKey: 'delete_foto_kiri');
+    await addFileToForm(formData, 'foto_kanan', fotoKanan,
+        deleted: fotoKananDeleted, deleteKey: 'delete_foto_kanan');
+    await addFileToForm(formData, 'foto_belakang', fotoBelakang,
+        deleted: fotoBelakangDeleted, deleteKey: 'delete_foto_belakang');
 
     return formData;
   }

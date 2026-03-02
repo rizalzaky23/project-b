@@ -25,6 +25,7 @@ class _AsuransiFormScreenState extends State<AsuransiFormScreen> {
   late final TextEditingController _kendaraanIdCtrl, _perusahaanCtrl, _jenisCtrl, _tanggalMulaiCtrl, _tanggalAkhirCtrl, _noPolisCtrl, _premiCtrl, _pertanggunganCtrl;
   DateTime? _tanggalMulai, _tanggalAkhir;
   XFile? _fotoDepan, _fotoKiri, _fotoKanan, _fotoBelakang, _fotoDashboard, _fotoKm;
+  bool _fotoDepanDel=false, _fotoKiriDel=false, _fotoKananDel=false, _fotoBelakangDel=false, _fotoDashboardDel=false, _fotoKmDel=false;
 
   bool get _isEdit => widget.existing != null;
 
@@ -59,7 +60,7 @@ class _AsuransiFormScreenState extends State<AsuransiFormScreen> {
     final mulai = _tanggalMulai != null ? FormatHelper.apiDate(_tanggalMulai!) : widget.existing?.tanggalMulai ?? '';
     final akhir = _tanggalAkhir != null ? FormatHelper.apiDate(_tanggalAkhir!) : widget.existing?.tanggalAkhir ?? '';
     if (_isEdit) {
-      context.read<AsuransiBloc>().add(AsuransiUpdateRequested(id: widget.existing!.id, perusahaanAsuransi: _perusahaanCtrl.text, jenisAsuransi: _jenisCtrl.text, tanggalMulai: mulai, tanggalAkhir: akhir, noPolis: _noPolisCtrl.text, nilaiPremi: double.parse(_premiCtrl.text), nilaiPertanggungan: double.parse(_pertanggunganCtrl.text), fotoDepan: _fotoDepan, fotoKiri: _fotoKiri, fotoKanan: _fotoKanan, fotoBelakang: _fotoBelakang, fotoDashboard: _fotoDashboard, fotoKm: _fotoKm));
+      context.read<AsuransiBloc>().add(AsuransiUpdateRequested(id: widget.existing!.id, perusahaanAsuransi: _perusahaanCtrl.text, jenisAsuransi: _jenisCtrl.text, tanggalMulai: mulai, tanggalAkhir: akhir, noPolis: _noPolisCtrl.text, nilaiPremi: double.parse(_premiCtrl.text), nilaiPertanggungan: double.parse(_pertanggunganCtrl.text), fotoDepan: _fotoDepan, fotoKiri: _fotoKiri, fotoKanan: _fotoKanan, fotoBelakang: _fotoBelakang, fotoDashboard: _fotoDashboard, fotoKm: _fotoKm, fotoDepanDeleted: _fotoDepanDel, fotoKiriDeleted: _fotoKiriDel, fotoKananDeleted: _fotoKananDel, fotoBelakangDeleted: _fotoBelakangDel, fotoDashboardDeleted: _fotoDashboardDel, fotoKmDeleted: _fotoKmDel));
     } else {
       context.read<AsuransiBloc>().add(AsuransiCreateRequested(kendaraanId: int.parse(_kendaraanIdCtrl.text), perusahaanAsuransi: _perusahaanCtrl.text, jenisAsuransi: _jenisCtrl.text, tanggalMulai: mulai, tanggalAkhir: akhir, noPolis: _noPolisCtrl.text, nilaiPremi: double.parse(_premiCtrl.text), nilaiPertanggungan: double.parse(_pertanggunganCtrl.text), fotoDepan: _fotoDepan, fotoKiri: _fotoKiri, fotoKanan: _fotoKanan, fotoBelakang: _fotoBelakang, fotoDashboard: _fotoDashboard, fotoKm: _fotoKm));
     }
@@ -100,12 +101,12 @@ class _AsuransiFormScreenState extends State<AsuransiFormScreen> {
                 const Text('Foto', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 15)),
                 const SizedBox(height: 12),
                 Wrap(spacing: 12, runSpacing: 12, children: [
-                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto Depan', pickedFile: _fotoDepan, existingUrl: widget.existing?.fotoDepan, onChanged: (f) => setState(() => _fotoDepan = f))),
-                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto Kiri', pickedFile: _fotoKiri, existingUrl: widget.existing?.fotoKiri, onChanged: (f) => setState(() => _fotoKiri = f))),
-                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto Kanan', pickedFile: _fotoKanan, existingUrl: widget.existing?.fotoKanan, onChanged: (f) => setState(() => _fotoKanan = f))),
-                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto Belakang', pickedFile: _fotoBelakang, existingUrl: widget.existing?.fotoBelakang, onChanged: (f) => setState(() => _fotoBelakang = f))),
-                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto Dashboard', pickedFile: _fotoDashboard, existingUrl: widget.existing?.fotoDashboard, onChanged: (f) => setState(() => _fotoDashboard = f))),
-                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto KM', pickedFile: _fotoKm, existingUrl: widget.existing?.fotoKm, onChanged: (f) => setState(() => _fotoKm = f))),
+                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto Depan', pickedFile: _fotoDepan, existingUrl: widget.existing?.fotoDepan, onPhotoResult: (r) => setState(() { _fotoDepan = r.hasPicked ? r.file : null; _fotoDepanDel = r.isDeleted; }), onChanged: (f) => setState(() => _fotoDepan = f))),
+                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto Kiri', pickedFile: _fotoKiri, existingUrl: widget.existing?.fotoKiri, onPhotoResult: (r) => setState(() { _fotoKiri = r.hasPicked ? r.file : null; _fotoKiriDel = r.isDeleted; }), onChanged: (f) => setState(() => _fotoKiri = f))),
+                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto Kanan', pickedFile: _fotoKanan, existingUrl: widget.existing?.fotoKanan, onPhotoResult: (r) => setState(() { _fotoKanan = r.hasPicked ? r.file : null; _fotoKananDel = r.isDeleted; }), onChanged: (f) => setState(() => _fotoKanan = f))),
+                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto Belakang', pickedFile: _fotoBelakang, existingUrl: widget.existing?.fotoBelakang, onPhotoResult: (r) => setState(() { _fotoBelakang = r.hasPicked ? r.file : null; _fotoBelakangDel = r.isDeleted; }), onChanged: (f) => setState(() => _fotoBelakang = f))),
+                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto Dashboard', pickedFile: _fotoDashboard, existingUrl: widget.existing?.fotoDashboard, onPhotoResult: (r) => setState(() { _fotoDashboard = r.hasPicked ? r.file : null; _fotoDashboardDel = r.isDeleted; }), onChanged: (f) => setState(() => _fotoDashboard = f))),
+                  SizedBox(width: 140, child: PhotoPickerWidget(label: 'Foto KM', pickedFile: _fotoKm, existingUrl: widget.existing?.fotoKm, onPhotoResult: (r) => setState(() { _fotoKm = r.hasPicked ? r.file : null; _fotoKmDel = r.isDeleted; }), onChanged: (f) => setState(() => _fotoKm = f))),
                 ]),
                 const SizedBox(height: 32),
                 AppButton(label: _isEdit ? 'Simpan' : 'Tambah', onPressed: isLoading ? null : _submit, isLoading: isLoading, fullWidth: true),

@@ -29,6 +29,7 @@ class _DetailKendaraanFormScreenState extends State<DetailKendaraanFormScreen> {
   late final TextEditingController _kendaraanIdController;
   DateTime? _berlakuMulaiDate;
   XFile? _fotoStnk, _fotoBpkb, _fotoNomor, _fotoKm;
+  bool _fotoStnkDel=false, _fotoBpkbDel=false, _fotoNomorDel=false, _fotoKmDel=false;
 
   bool get _isEdit => widget.existing != null;
 
@@ -62,7 +63,7 @@ class _DetailKendaraanFormScreenState extends State<DetailKendaraanFormScreen> {
     final bloc = context.read<DetailKendaraanBloc>();
     final berlaku = _berlakuMulaiDate != null ? FormatHelper.apiDate(_berlakuMulaiDate!) : widget.existing?.berlakuMulai;
     if (_isEdit) {
-      bloc.add(DetailKendaraanUpdateRequested(id: widget.existing!.id, noPolisi: _noPolisiController.text, namaPemilik: _namaPemilikController.text, berlakuMulai: berlaku, fotoStnk: _fotoStnk, fotoBpkb: _fotoBpkb, fotoNomor: _fotoNomor, fotoKm: _fotoKm));
+      bloc.add(DetailKendaraanUpdateRequested(id: widget.existing!.id, noPolisi: _noPolisiController.text, namaPemilik: _namaPemilikController.text, berlakuMulai: berlaku, fotoStnk: _fotoStnk, fotoBpkb: _fotoBpkb, fotoNomor: _fotoNomor, fotoKm: _fotoKm, fotoStnkDeleted: _fotoStnkDel, fotoBpkbDeleted: _fotoBpkbDel, fotoNomorDeleted: _fotoNomorDel, fotoKmDeleted: _fotoKmDel));
     } else {
       bloc.add(DetailKendaraanCreateRequested(kendaraanId: int.parse(_kendaraanIdController.text), noPolisi: _noPolisiController.text, namaPemilik: _namaPemilikController.text, berlakuMulai: berlaku, fotoStnk: _fotoStnk, fotoBpkb: _fotoBpkb, fotoNomor: _fotoNomor, fotoKm: _fotoKm));
     }
@@ -102,15 +103,15 @@ class _DetailKendaraanFormScreenState extends State<DetailKendaraanFormScreen> {
                     const Text('Foto Dokumen', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 15)),
                     const SizedBox(height: 12),
                     Row(children: [
-                      Expanded(child: PhotoPickerWidget(label: 'Foto STNK', pickedFile: _fotoStnk, existingUrl: widget.existing?.fotoStnk, onChanged: (f) => setState(() => _fotoStnk = f))),
+                      Expanded(child: PhotoPickerWidget(label: 'Foto STNK', pickedFile: _fotoStnk, existingUrl: widget.existing?.fotoStnk, onPhotoResult: (r) => setState(() { _fotoStnk = r.hasPicked ? r.file : null; _fotoStnkDel = r.isDeleted; }), onChanged: (f) => setState(() => _fotoStnk = f))),
                       const SizedBox(width: 12),
-                      Expanded(child: PhotoPickerWidget(label: 'Foto BPKB', pickedFile: _fotoBpkb, existingUrl: widget.existing?.fotoBpkb, onChanged: (f) => setState(() => _fotoBpkb = f))),
+                      Expanded(child: PhotoPickerWidget(label: 'Foto BPKB', pickedFile: _fotoBpkb, existingUrl: widget.existing?.fotoBpkb, onPhotoResult: (r) => setState(() { _fotoBpkb = r.hasPicked ? r.file : null; _fotoBpkbDel = r.isDeleted; }), onChanged: (f) => setState(() => _fotoBpkb = f))),
                     ]),
                     const SizedBox(height: 12),
                     Row(children: [
-                      Expanded(child: PhotoPickerWidget(label: 'Foto Nomor', pickedFile: _fotoNomor, existingUrl: widget.existing?.fotoNomor, onChanged: (f) => setState(() => _fotoNomor = f))),
+                      Expanded(child: PhotoPickerWidget(label: 'Foto Nomor', pickedFile: _fotoNomor, existingUrl: widget.existing?.fotoNomor, onPhotoResult: (r) => setState(() { _fotoNomor = r.hasPicked ? r.file : null; _fotoNomorDel = r.isDeleted; }), onChanged: (f) => setState(() => _fotoNomor = f))),
                       const SizedBox(width: 12),
-                      Expanded(child: PhotoPickerWidget(label: 'Foto KM', pickedFile: _fotoKm, existingUrl: widget.existing?.fotoKm, onChanged: (f) => setState(() => _fotoKm = f))),
+                      Expanded(child: PhotoPickerWidget(label: 'Foto KM', pickedFile: _fotoKm, existingUrl: widget.existing?.fotoKm, onPhotoResult: (r) => setState(() { _fotoKm = r.hasPicked ? r.file : null; _fotoKmDel = r.isDeleted; }), onChanged: (f) => setState(() => _fotoKm = f))),
                     ]),
                     const SizedBox(height: 32),
                     AppButton(label: _isEdit ? 'Simpan' : 'Tambah', onPressed: isLoading ? null : _submit, isLoading: isLoading, fullWidth: true),

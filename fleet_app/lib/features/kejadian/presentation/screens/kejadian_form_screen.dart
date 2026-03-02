@@ -25,6 +25,7 @@ class _KejadianFormScreenState extends State<KejadianFormScreen> {
   late final TextEditingController _kendaraanIdCtrl, _tanggalCtrl, _deskripsiCtrl;
   DateTime? _tanggal;
   XFile? _fotoKm, _foto1, _foto2;
+  bool _fotoKmDel=false, _foto1Del=false, _foto2Del=false;
 
   bool get _isEdit => widget.existing != null;
 
@@ -48,7 +49,7 @@ class _KejadianFormScreenState extends State<KejadianFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     final tgl = _tanggal != null ? FormatHelper.apiDate(_tanggal!) : widget.existing?.tanggal ?? '';
     if (_isEdit) {
-      context.read<KejadianBloc>().add(KejadianUpdateRequested(id: widget.existing!.id, tanggal: tgl, deskripsi: _deskripsiCtrl.text.isEmpty ? null : _deskripsiCtrl.text, fotoKm: _fotoKm, foto1: _foto1, foto2: _foto2));
+      context.read<KejadianBloc>().add(KejadianUpdateRequested(id: widget.existing!.id, tanggal: tgl, deskripsi: _deskripsiCtrl.text.isEmpty ? null : _deskripsiCtrl.text, fotoKm: _fotoKm, foto1: _foto1, foto2: _foto2, fotoKmDeleted: _fotoKmDel, foto1Deleted: _foto1Del, foto2Deleted: _foto2Del));
     } else {
       context.read<KejadianBloc>().add(KejadianCreateRequested(kendaraanId: int.parse(_kendaraanIdCtrl.text), tanggal: tgl, deskripsi: _deskripsiCtrl.text.isEmpty ? null : _deskripsiCtrl.text, fotoKm: _fotoKm, foto1: _foto1, foto2: _foto2));
     }
@@ -77,11 +78,11 @@ class _KejadianFormScreenState extends State<KejadianFormScreen> {
                 const Text('Foto', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 15)),
                 const SizedBox(height: 12),
                 Row(children: [
-                  Expanded(child: PhotoPickerWidget(label: 'Foto KM', pickedFile: _fotoKm, existingUrl: widget.existing?.fotoKm, onChanged: (f) => setState(() => _fotoKm = f))),
+                  Expanded(child: PhotoPickerWidget(label: 'Foto KM', pickedFile: _fotoKm, existingUrl: widget.existing?.fotoKm, onPhotoResult: (r) => setState(() { _fotoKm = r.hasPicked ? r.file : null; _fotoKmDel = r.isDeleted; }), onChanged: (f) => setState(() => _fotoKm = f))),
                   const SizedBox(width: 12),
-                  Expanded(child: PhotoPickerWidget(label: 'Foto 1', pickedFile: _foto1, existingUrl: widget.existing?.foto1, onChanged: (f) => setState(() => _foto1 = f))),
+                  Expanded(child: PhotoPickerWidget(label: 'Foto 1', pickedFile: _foto1, existingUrl: widget.existing?.foto1, onPhotoResult: (r) => setState(() { _foto1 = r.hasPicked ? r.file : null; _foto1Del = r.isDeleted; }), onChanged: (f) => setState(() => _foto1 = f))),
                   const SizedBox(width: 12),
-                  Expanded(child: PhotoPickerWidget(label: 'Foto 2', pickedFile: _foto2, existingUrl: widget.existing?.foto2, onChanged: (f) => setState(() => _foto2 = f))),
+                  Expanded(child: PhotoPickerWidget(label: 'Foto 2', pickedFile: _foto2, existingUrl: widget.existing?.foto2, onPhotoResult: (r) => setState(() { _foto2 = r.hasPicked ? r.file : null; _foto2Del = r.isDeleted; }), onChanged: (f) => setState(() => _foto2 = f))),
                 ]),
                 const SizedBox(height: 32),
                 AppButton(label: _isEdit ? 'Simpan' : 'Tambah', onPressed: isLoading ? null : _submit, isLoading: isLoading, fullWidth: true),

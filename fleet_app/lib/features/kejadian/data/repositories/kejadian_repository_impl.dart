@@ -33,15 +33,15 @@ class KejadianRepositoryImpl implements KejadianRepository {
   }
 
   @override
-  Future<KejadianEntity> update({required int id, String? tanggal, String? deskripsi, XFile? fotoKm, XFile? foto1, XFile? foto2}) async {
+  Future<KejadianEntity> update({required int id, String? tanggal, String? deskripsi, XFile? fotoKm, XFile? foto1, XFile? foto2, bool fotoKmDeleted = false, bool foto1Deleted = false, bool foto2Deleted = false}) async {
     try {
       final fields = <String,dynamic>{};
       if (tanggal != null) fields['tanggal'] = tanggal;
       if (deskripsi != null) fields['deskripsi'] = deskripsi;
       final fd = FormData.fromMap(fields);
-      for (final e in [('foto_km', fotoKm), ('foto_1', foto1), ('foto_2', foto2)]) {
-        if (e.$2 != null) await addFileToForm(fd, e.$1, e.$2);
-      }
+      await addFileToForm(fd, 'foto_km', fotoKm, deleted: fotoKmDeleted, deleteKey: 'delete_foto_km');
+      await addFileToForm(fd, 'foto_1', foto1, deleted: foto1Deleted, deleteKey: 'delete_foto_1');
+      await addFileToForm(fd, 'foto_2', foto2, deleted: foto2Deleted, deleteKey: 'delete_foto_2');
       return await _remote.update(id, fd);
     } on DioException catch (e) { throw ApiHelper.handleError(e); }
   }

@@ -5,16 +5,42 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/theme/dark_theme.dart';
 import 'network_image_widget.dart';
 
+/// Status foto untuk membedakan antara:
+/// - [PhotoStatus.unchanged]  : tidak ada perubahan (pakai foto lama)
+/// - [PhotoStatus.picked]     : ada foto baru yang dipilih user
+/// - [PhotoStatus.deleted]    : user menghapus foto yang sudah ada
+enum PhotoStatus { unchanged, picked, deleted }
+
+/// Hasil callback dari [PhotoPickerWidget].
+class PhotoResult {
+  final XFile? file;
+  final PhotoStatus status;
+
+  const PhotoResult({required this.file, required this.status});
+
+  /// Helper: apakah foto ini dihapus (perlu dikirim sinyal hapus ke API)?
+  bool get isDeleted => status == PhotoStatus.deleted;
+
+  /// Helper: apakah ada file baru untuk diupload?
+  bool get hasPicked => status == PhotoStatus.picked && file != null;
+}
+
 class PhotoPickerWidget extends StatefulWidget {
   final String label;
   final XFile? pickedFile;
   final String? existingUrl;
-  final void Function(XFile?) onChanged;
+
+  /// Callback lama (opsional, untuk kompatibilitas)
+  final void Function(XFile?)? onChanged;
+
+  /// Callback baru dengan info status hapus/ganti
+  final void Function(PhotoResult)? onPhotoResult;
 
   const PhotoPickerWidget({
     super.key,
     required this.label,
-    required this.onChanged,
+    this.onChanged,
+    this.onPhotoResult,
     this.pickedFile,
     this.existingUrl,
   });
@@ -26,6 +52,9 @@ class PhotoPickerWidget extends StatefulWidget {
 class _PhotoPickerWidgetState extends State<PhotoPickerWidget> {
   Uint8List? _imageBytes;
   XFile? _lastFile;
+
+  /// Apakah user sudah menghapus foto yang ada (existingUrl)?
+  bool _isDeleted = false;
 
   @override
   void initState() {
@@ -48,6 +77,7 @@ class _PhotoPickerWidgetState extends State<PhotoPickerWidget> {
         setState(() {
           _imageBytes = bytes;
           _lastFile = widget.pickedFile;
+          _isDeleted = false;
         });
       }
     } else {
@@ -73,13 +103,32 @@ class _PhotoPickerWidgetState extends State<PhotoPickerWidget> {
         setState(() {
           _imageBytes = bytes;
           _lastFile = file;
+          _isDeleted = false;
         });
       }
+      final result = PhotoResult(file: file, status: PhotoStatus.picked);
+      widget.onPhotoResult?.call(result);
+      widget.onChanged?.call(file);
     }
-    widget.onChanged(file);
+  }
+
+  void _delete() {
+    setState(() {
+      _imageBytes = null;
+      _lastFile = null;
+      _isDeleted = true;
+    });
+    const result = PhotoResult(file: null, status: PhotoStatus.deleted);
+    widget.onPhotoResult?.call(result);
+    widget.onChanged?.call(null);
   }
 
   void _showOptions() {
+    final hasPhoto = _imageBytes != null ||
+        (widget.existingUrl != null &&
+            widget.existingUrl!.isNotEmpty &&
+            !_isDeleted);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surfaceVariant,
@@ -101,7 +150,8 @@ class _PhotoPickerWidgetState extends State<PhotoPickerWidget> {
             ),
             if (!kIsWeb)
               ListTile(
-                leading: const Icon(Icons.camera_alt_outlined, color: AppTheme.primary),
+                leading: const Icon(Icons.camera_alt_outlined,
+                    color: AppTheme.primary),
                 title: const Text('Ambil Foto'),
                 onTap: () {
                   Navigator.pop(sheetCtx);
@@ -109,24 +159,22 @@ class _PhotoPickerWidgetState extends State<PhotoPickerWidget> {
                 },
               ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: AppTheme.primary),
+              leading: const Icon(Icons.photo_library_outlined,
+                  color: AppTheme.primary),
               title: const Text('Pilih dari Galeri'),
               onTap: () {
                 Navigator.pop(sheetCtx);
                 _pick(ImageSource.gallery);
               },
             ),
-            if (widget.pickedFile != null || widget.existingUrl != null)
+            if (hasPhoto)
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: AppTheme.error),
-                title: const Text('Hapus Foto', style: TextStyle(color: AppTheme.error)),
+                title: const Text('Hapus Foto',
+                    style: TextStyle(color: AppTheme.error)),
                 onTap: () {
                   Navigator.pop(sheetCtx);
-                  setState(() {
-                    _imageBytes = null;
-                    _lastFile = null;
-                  });
-                  widget.onChanged(null);
+                  _delete();
                 },
               ),
             const SizedBox(height: 8),
@@ -175,12 +223,32 @@ class _PhotoPickerWidgetState extends State<PhotoPickerWidget> {
       );
     }
 
-    // Gambar dari URL (mode edit)
-    if (widget.existingUrl != null && widget.existingUrl!.isNotEmpty) {
-      return NetworkImageWidget(
-        imageUrl: widget.existingUrl,
-        fit: BoxFit.cover,
-        borderRadius: BorderRadius.circular(10),
+    // Gambar dari URL (mode edit) — tampilkan hanya jika belum dihapus
+    if (widget.existingUrl != null &&
+        widget.existingUrl!.isNotEmpty &&
+        !_isDeleted) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          NetworkImageWidget(
+            imageUrl: widget.existingUrl,
+            fit: BoxFit.cover,
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ],
+      );
+    }
+
+    // Placeholder: dihapus
+    if (_isDeleted) {
+      return const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.hide_image_outlined, color: AppTheme.error, size: 28),
+          SizedBox(height: 4),
+          Text('Foto dihapus',
+              style: TextStyle(color: AppTheme.error, fontSize: 12)),
+        ],
       );
     }
 
