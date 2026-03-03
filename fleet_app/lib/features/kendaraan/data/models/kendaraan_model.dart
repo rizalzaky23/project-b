@@ -3,22 +3,11 @@ import '../../domain/entities/kendaraan_entity.dart';
 
 class KendaraanModel extends KendaraanEntity {
   const KendaraanModel({
-    required super.id,
-    required super.kodeKendaraan,
-    required super.merk,
-    required super.tipe,
-    required super.warna,
-    required super.noChasis,
-    required super.noMesin,
-    required super.tahunPerolehan,
-    required super.tahunPembuatan,
-    required super.hargaPerolehan,
-    super.dealer,
-    super.fotoDepan,
-    super.fotoKiri,
-    super.fotoKanan,
-    super.fotoBelakang,
-    super.createdAt,
+    required super.id, required super.kodeKendaraan, required super.merk,
+    required super.tipe, required super.warna, required super.noChasis,
+    required super.noMesin, required super.tahunPerolehan, required super.tahunPembuatan,
+    required super.hargaPerolehan, super.dealer, super.fotoDepan, super.fotoKiri,
+    super.fotoKanan, super.fotoBelakang, super.createdAt,
   });
 
   factory KendaraanModel.fromJson(Map<String, dynamic> json) {
@@ -34,10 +23,10 @@ class KendaraanModel extends KendaraanEntity {
       tahunPembuatan: int.tryParse(json['tahun_pembuatan']?.toString() ?? '0') ?? 0,
       hargaPerolehan: double.tryParse(json['harga_perolehan']?.toString() ?? '0') ?? 0,
       dealer: json['dealer'],
-      fotoDepan: ApiConstants.resolveFileUrl(json['foto_depan']),
-      fotoKiri: ApiConstants.resolveFileUrl(json['foto_kiri']),
-      fotoKanan: ApiConstants.resolveFileUrl(json['foto_kanan']),
-      fotoBelakang: ApiConstants.resolveFileUrl(json['foto_belakang']),
+      fotoDepan: ApiConstants.photoUrl(json['foto_depan']),
+      fotoKiri: ApiConstants.photoUrl(json['foto_kiri']),
+      fotoKanan: ApiConstants.photoUrl(json['foto_kanan']),
+      fotoBelakang: ApiConstants.photoUrl(json['foto_belakang']),
       createdAt: json['created_at'],
     );
   }

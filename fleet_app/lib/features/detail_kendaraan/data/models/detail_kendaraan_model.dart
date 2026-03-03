@@ -3,17 +3,9 @@ import '../../domain/entities/detail_kendaraan_entity.dart';
 
 class DetailKendaraanModel extends DetailKendaraanEntity {
   const DetailKendaraanModel({
-    required super.id,
-    required super.kendaraanId,
-    required super.noPolisi,
-    super.berlakuMulai,
-    required super.namaPemilik,
-    super.fotoStnk,
-    super.fotoBpkb,
-    super.fotoNomor,
-    super.fotoKm,
-    super.createdAt,
-    super.kendaraan,
+    required super.id, required super.kendaraanId, required super.noPolisi,
+    super.berlakuMulai, required super.namaPemilik, super.fotoStnk, super.fotoBpkb,
+    super.fotoNomor, super.fotoKm, super.createdAt, super.kendaraan,
   });
 
   factory DetailKendaraanModel.fromJson(Map<String, dynamic> json) {
@@ -23,10 +15,10 @@ class DetailKendaraanModel extends DetailKendaraanEntity {
       noPolisi: json['no_polisi'] ?? '',
       berlakuMulai: json['berlaku_mulai'],
       namaPemilik: json['nama_pemilik'] ?? '',
-      fotoStnk: ApiConstants.resolveFileUrl(json['foto_stnk']),
-      fotoBpkb: ApiConstants.resolveFileUrl(json['foto_bpkb']),
-      fotoNomor: ApiConstants.resolveFileUrl(json['foto_nomor']),
-      fotoKm: ApiConstants.resolveFileUrl(json['foto_km']),
+      fotoStnk: ApiConstants.photoUrl(json['foto_stnk']),
+      fotoBpkb: ApiConstants.photoUrl(json['foto_bpkb']),
+      fotoNomor: ApiConstants.photoUrl(json['foto_nomor']),
+      fotoKm: ApiConstants.photoUrl(json['foto_km']),
       createdAt: json['created_at'],
       kendaraan: json['kendaraan'] as Map<String, dynamic>?,
     );

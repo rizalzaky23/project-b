@@ -56,20 +56,25 @@ class KendaraanController extends Controller
     }
 
     public function update(UpdateKendaraanRequest $request, Kendaraan $kendaraan)
-    {
-        $data = $request->validated();
+{
+    $data = $request->validated();
 
-        foreach ($this->photoFields as $field) {
-            if ($request->hasFile($field)) {
-                $this->photoService->delete($kendaraan->$field);
-                $data[$field] = $this->photoService->upload($request->file($field), 'kendaraan');
-            }
+    foreach ($this->photoFields as $field) {
+        if ($request->hasFile($field)) {
+            // Ganti foto lama dengan foto baru
+            $this->photoService->delete($kendaraan->$field);
+            $data[$field] = $this->photoService->upload($request->file($field), 'kendaraan');
+        } elseif ($request->input('delete_' . $field) == '1' || $request->input('delete_' . $field) === true) {
+            // Hapus foto tanpa ganti
+            $this->photoService->delete($kendaraan->$field);
+            $data[$field] = null;
         }
-
-        $kendaraan->update($data);
-
-        return $this->successResponse($kendaraan, 'Kendaraan berhasil diperbarui.');
     }
+
+    $kendaraan->update($data);
+
+    return $this->successResponse($kendaraan, 'Kendaraan berhasil diperbarui.');
+}
 
     public function destroy(Kendaraan $kendaraan)
     {
