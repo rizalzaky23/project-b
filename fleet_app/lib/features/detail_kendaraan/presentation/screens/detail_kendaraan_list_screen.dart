@@ -220,11 +220,12 @@ class _DetailKendaraanListScreenState extends State<DetailKendaraanListScreen> {
                                       await context.push(
                                           '/detail-kendaraan/${item.id}/edit',
                                           extra: item);
-                                      if (context.mounted)
+                                      if (context.mounted) {
                                         context.read<DetailKendaraanBloc>().add(
                                             DetailKendaraanLoadRequested(
                                                 kendaraanId:
                                                     widget.kendaraanId));
+                                      }
                                     },
                                     padding: const EdgeInsets.all(6),
                                     constraints: const BoxConstraints()),

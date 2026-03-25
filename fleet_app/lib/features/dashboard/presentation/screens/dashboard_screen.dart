@@ -187,8 +187,9 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
           ],
           onSelected: (val) {
-            if (val == 'logout')
+            if (val == 'logout') {
               context.read<AuthBloc>().add(AuthLogoutRequested());
+            }
           },
         ),
         const SizedBox(width: 8),

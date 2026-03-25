@@ -85,7 +85,7 @@ class AsuransiBloc extends Bloc<AsuransiEvent, AsuransiState> {
 
   Future<void> _onUpdate(AsuransiUpdateRequested e, Emitter<AsuransiState> emit) async {
     emit(AsuransiActionLoading());
-    try { await _repo.update(id: e.id, perusahaanAsuransi: e.perusahaanAsuransi, jenisAsuransi: e.jenisAsuransi, tanggalMulai: e.tanggalMulai, tanggalAkhir: e.tanggalAkhir, noPolis: e.noPolis, nilaiPremi: e.nilaiPremi, nilaiPertanggungan: e.nilaiPertanggungan, fotoDepan: e.fotoDepan, fotoKiri: e.fotoKiri, fotoKanan: e.fotoKanan, fotoBelakang: e.fotoBelakang, fotoDashboard: e.fotoDashboard, fotoKm: e.fotoKm); emit(AsuransiActionSuccess('Asuransi berhasil diperbarui')); }
+    try { await _repo.update(id: e.id, perusahaanAsuransi: e.perusahaanAsuransi, jenisAsuransi: e.jenisAsuransi, tanggalMulai: e.tanggalMulai, tanggalAkhir: e.tanggalAkhir, noPolis: e.noPolis, nilaiPremi: e.nilaiPremi, nilaiPertanggungan: e.nilaiPertanggungan, fotoDepan: e.fotoDepan, fotoKiri: e.fotoKiri, fotoKanan: e.fotoKanan, fotoBelakang: e.fotoBelakang, fotoDashboard: e.fotoDashboard, fotoKm: e.fotoKm, fotoDepanDeleted: e.fotoDepanDeleted, fotoKiriDeleted: e.fotoKiriDeleted, fotoKananDeleted: e.fotoKananDeleted, fotoBelakangDeleted: e.fotoBelakangDeleted, fotoDashboardDeleted: e.fotoDashboardDeleted, fotoKmDeleted: e.fotoKmDeleted); emit(AsuransiActionSuccess('Asuransi berhasil diperbarui')); }
     catch (err) { emit(AsuransiActionError(err is Failure ? err : ServerFailure(err.toString()))); }
   }
 

@@ -111,6 +111,9 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: context.canPop()
+            ? IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop())
+            : null,
         title: Text(_isEdit ? 'Edit Kendaraan' : 'Tambah Kendaraan'),
       ),
       body: BlocListener<KendaraanBloc, KendaraanState>(
@@ -139,15 +142,13 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
     );
   }
 
-  // ─── Desktop: form kiri | foto kanan ─────────────────────────────────────
-
   Widget _buildDesktopLayout(BuildContext context, bool isLoading) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Form kiri 55%
+        // Form kiri 50%
         Expanded(
-          flex: 55,
+          flex: 50,
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
             child: Form(
@@ -167,56 +168,53 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
             ),
           ),
         ),
-        // Divider
         VerticalDivider(width: 1, color: Theme.of(context).dividerColor),
-        // Panel foto kanan 45%
+        // Panel foto kanan 50%
         Expanded(
-          flex: 45,
-          child: Container(
-            height: double.infinity,
-            color: Theme.of(context).colorScheme.surface,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          flex: 50,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 _sectionTitle('Foto Kendaraan'),
-                const SizedBox(height: 4),
-                // 2x2 grid foto
+                const SizedBox(height: 8),
+                // Baris 1
                 Row(children: [
-                  Expanded(child: _photoPicker(
+                  Expanded(child: _photoCard(
                     label: 'Foto Depan', file: _fotoDepan, url: widget.existing?.fotoDepan,
                     onResult: (r) => setState(() { _fotoDepan = r.hasPicked ? r.file : null; _fotoDepanDeleted = r.isDeleted; }),
                     onChanged: (f) => setState(() => _fotoDepan = f),
                   )),
                   const SizedBox(width: 12),
-                  Expanded(child: _photoPicker(
+                  Expanded(child: _photoCard(
                     label: 'Foto Kiri', file: _fotoKiri, url: widget.existing?.fotoKiri,
                     onResult: (r) => setState(() { _fotoKiri = r.hasPicked ? r.file : null; _fotoKiriDeleted = r.isDeleted; }),
                     onChanged: (f) => setState(() => _fotoKiri = f),
                   )),
                 ]),
                 const SizedBox(height: 12),
+                // Baris 2
                 Row(children: [
-                  Expanded(child: _photoPicker(
+                  Expanded(child: _photoCard(
                     label: 'Foto Kanan', file: _fotoKanan, url: widget.existing?.fotoKanan,
                     onResult: (r) => setState(() { _fotoKanan = r.hasPicked ? r.file : null; _fotoKananDeleted = r.isDeleted; }),
                     onChanged: (f) => setState(() => _fotoKanan = f),
                   )),
                   const SizedBox(width: 12),
-                  Expanded(child: _photoPicker(
+                  Expanded(child: _photoCard(
                     label: 'Foto Belakang', file: _fotoBelakang, url: widget.existing?.fotoBelakang,
                     onResult: (r) => setState(() { _fotoBelakang = r.hasPicked ? r.file : null; _fotoBelakangDeleted = r.isDeleted; }),
                     onChanged: (f) => setState(() => _fotoBelakang = f),
                   )),
                 ]),
-              ]),
+              ],
             ),
           ),
         ),
       ],
     );
   }
-
-  // ─── Mobile: vertikal, foto di bawah form ─────────────────────────────────
 
   Widget _buildMobileLayout(BuildContext context, bool isLoading) {
     return SingleChildScrollView(
@@ -229,13 +227,13 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
           const SizedBox(height: 24),
           _sectionTitle('Foto Kendaraan'),
           Row(children: [
-            Expanded(child: _photoPicker(
+            Expanded(child: _photoCard(
               label: 'Foto Depan', file: _fotoDepan, url: widget.existing?.fotoDepan,
               onResult: (r) => setState(() { _fotoDepan = r.hasPicked ? r.file : null; _fotoDepanDeleted = r.isDeleted; }),
               onChanged: (f) => setState(() => _fotoDepan = f),
             )),
             const SizedBox(width: 12),
-            Expanded(child: _photoPicker(
+            Expanded(child: _photoCard(
               label: 'Foto Kiri', file: _fotoKiri, url: widget.existing?.fotoKiri,
               onResult: (r) => setState(() { _fotoKiri = r.hasPicked ? r.file : null; _fotoKiriDeleted = r.isDeleted; }),
               onChanged: (f) => setState(() => _fotoKiri = f),
@@ -243,13 +241,13 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
           ]),
           const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: _photoPicker(
+            Expanded(child: _photoCard(
               label: 'Foto Kanan', file: _fotoKanan, url: widget.existing?.fotoKanan,
               onResult: (r) => setState(() { _fotoKanan = r.hasPicked ? r.file : null; _fotoKananDeleted = r.isDeleted; }),
               onChanged: (f) => setState(() => _fotoKanan = f),
             )),
             const SizedBox(width: 12),
-            Expanded(child: _photoPicker(
+            Expanded(child: _photoCard(
               label: 'Foto Belakang', file: _fotoBelakang, url: widget.existing?.fotoBelakang,
               onResult: (r) => setState(() { _fotoBelakang = r.hasPicked ? r.file : null; _fotoBelakangDeleted = r.isDeleted; }),
               onChanged: (f) => setState(() => _fotoBelakang = f),
@@ -268,22 +266,33 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
     );
   }
 
-  // ─── Helper: PhotoPickerWidget wrapper ─────────────────────────────────────
-
-  Widget _photoPicker({
+  /// Wrapper foto dengan AspectRatio 4:3 agar semua kotak sama ukurannya
+  Widget _photoCard({
     required String label,
     required XFile? file,
     required String? url,
     required void Function(PhotoResult) onResult,
     required void Function(XFile?) onChanged,
   }) {
-    return PhotoPickerWidget(
-      label: label, pickedFile: file, existingUrl: url,
-      onPhotoResult: onResult, onChanged: onChanged,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+        const SizedBox(height: 6),
+        AspectRatio(
+          aspectRatio: 4 / 3,
+          child: PhotoPickerWidget(
+            label: '',
+            pickedFile: file,
+            existingUrl: url,
+            onPhotoResult: onResult,
+            onChanged: onChanged,
+            hideLabel: true,
+          ),
+        ),
+      ],
     );
   }
-
-  // ─── Form fields ───────────────────────────────────────────────────────────
 
   Widget _sectionTitle(String title) {
     return Padding(
@@ -293,7 +302,6 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
     );
   }
 
-  // Desktop: 2 kolom sejajar
   Widget _buildDesktopFormGrid() {
     final fields = _buildFormFields();
     final List<Widget> rows = [];
@@ -315,7 +323,6 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
       if (double.tryParse(v) == null) return '$l harus berupa angka';
       return null;
     }
-
     return [
       AppTextField(controller: _kodeController, label: 'Kode Kendaraan',
           prefixIcon: Icons.tag, validator: (v) => req(v, 'Kode kendaraan')),
