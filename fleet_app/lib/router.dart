@@ -113,12 +113,15 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/detail-kendaraan/create',
       builder: (ctx, state) {
-        final kendaraanId = state.uri.queryParameters['kendaraan_id'];
+        // Support both extra map (new pattern) and query params (fallback)
+        final extra = state.extra as Map<String, dynamic>?;
+        final kendaraanId = extra?['kendaraanId'] as int? ??
+            (state.uri.queryParameters['kendaraan_id'] != null
+                ? int.parse(state.uri.queryParameters['kendaraan_id']!)
+                : null);
         return BlocProvider(
           create: (_) => sl<DetailKendaraanBloc>(),
-          child: DetailKendaraanFormScreen(
-              kendaraanId:
-                  kendaraanId != null ? int.parse(kendaraanId) : null),
+          child: DetailKendaraanFormScreen(kendaraanId: kendaraanId),
         );
       },
     ),

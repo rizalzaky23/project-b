@@ -1,0 +1,47 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'core/theme/dark_theme.dart';
+import 'core/theme/theme_notifier.dart';
+import 'core/trial/trial_service.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'injection_container.dart';
+import 'router.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
+  setupDependencies();
+
+  // Inisialisasi trial — simpan tanggal install pertama kali
+  await TrialService.instance.init();
+
+  // Trigger AuthCheckRequested pada singleton AuthBloc
+  sl<AuthBloc>().add(AuthCheckRequested());
+
+  runApp(const FleetApp());
+}
+
+class FleetApp extends StatelessWidget {
+  const FleetApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider.value(
+      value: sl<AuthBloc>(),
+      child: ValueListenableBuilder<ThemeMode>(
+        valueListenable: themeNotifier,
+        builder: (context, currentMode, _) {
+          return MaterialApp.router(
+            title: 'Fleet Management',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: currentMode,
+            routerConfig: appRouter,
+          );
+        },
+      ),
+    );
+  }
+}
