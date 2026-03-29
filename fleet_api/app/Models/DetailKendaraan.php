@@ -14,16 +14,21 @@ class DetailKendaraan extends Model
     protected $fillable = [
         'kendaraan_id',
         'no_polisi',
-        'berlaku_mulai',
-        'nama_pemilik',
+        'pemilik_komersial',
+        'pemilik_viskal',
         'foto_stnk',
+        'stnk_berlaku_mulai',
+        'stnk_berlaku_akhir',
         'foto_bpkb',
         'foto_nomor',
         'foto_km',
+        'kartu_kir',
+        'lembar_kir',
     ];
 
     protected $casts = [
-        'berlaku_mulai' => 'date',
+        'stnk_berlaku_mulai' => 'date',
+        'stnk_berlaku_akhir' => 'date',
     ];
 
     public function kendaraan()

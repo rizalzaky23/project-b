@@ -15,6 +15,7 @@ class DetailKendaraanController extends Controller
     use ApiResponse;
 
     private array $photoFields = ['foto_stnk', 'foto_bpkb', 'foto_nomor', 'foto_km'];
+    private array $pdfFields   = ['kartu_kir', 'lembar_kir'];
 
     public function __construct(private PhotoUploadService $photoService) {}
 
@@ -24,7 +25,7 @@ class DetailKendaraanController extends Controller
             ->when($request->kendaraan_id, fn($q, $v) => $q->where('kendaraan_id', $v))
             ->when($request->search, fn($q, $s) =>
                 $q->where('no_polisi', 'like', "%{$s}%")
-                  ->orWhere('nama_pemilik', 'like', "%{$s}%")
+                  ->orWhere('pemilik_komersial', 'like', "%{$s}%")
             )
             ->latest();
 
@@ -35,7 +36,7 @@ class DetailKendaraanController extends Controller
     {
         $data = $request->validated();
 
-        foreach ($this->photoFields as $field) {
+        foreach (array_merge($this->photoFields, $this->pdfFields) as $field) {
             if ($request->hasFile($field)) {
                 $data[$field] = $this->photoService->upload($request->file($field), 'detail_kendaraan');
             }
@@ -57,13 +58,11 @@ class DetailKendaraanController extends Controller
     {
         $data = $request->validated();
 
-        foreach ($this->photoFields as $field) {
+        foreach (array_merge($this->photoFields, $this->pdfFields) as $field) {
             if ($request->hasFile($field)) {
-                // Ganti foto lama dengan foto baru
                 $this->photoService->delete($detailKendaraan->$field);
                 $data[$field] = $this->photoService->upload($request->file($field), 'detail_kendaraan');
             } elseif ($request->input('delete_' . $field) == '1' || $request->input('delete_' . $field) === true) {
-                // Hapus foto tanpa ganti
                 $this->photoService->delete($detailKendaraan->$field);
                 $data[$field] = null;
             }
@@ -77,7 +76,7 @@ class DetailKendaraanController extends Controller
     public function destroy(DetailKendaraan $detailKendaraan)
     {
         $this->photoService->deleteMany(array_filter(
-            array_map(fn($f) => $detailKendaraan->$f, $this->photoFields)
+            array_map(fn($f) => $detailKendaraan->$f, array_merge($this->photoFields, $this->pdfFields))
         ));
 
         $detailKendaraan->delete();

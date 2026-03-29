@@ -45,10 +45,9 @@ class DetailKendaraanRepositoryImpl implements DetailKendaraanRepository {
       final fields = <String, dynamic>{
         'kendaraan_id': kendaraanId.toString(),
         'no_polisi': noPolisi,
-        'nama_pemilik': namaPemilik,
+        'pemilik_komersial': namaPemilik,
       };
-      if (pemilikKomersial != null) fields['pemilik_komersial'] = pemilikKomersial;
-      if (pemilikFiskal != null) fields['pemilik_fiskal'] = pemilikFiskal;
+      if (pemilikFiskal != null) fields['pemilik_viskal'] = pemilikFiskal;
       if (stnkBerlakuMulai != null) fields['stnk_berlaku_mulai'] = stnkBerlakuMulai;
       if (stnkBerlakuAkhir != null) fields['stnk_berlaku_akhir'] = stnkBerlakuAkhir;
       final formData = FormData.fromMap(fields);
@@ -86,9 +85,8 @@ class DetailKendaraanRepositoryImpl implements DetailKendaraanRepository {
     try {
       final fields = <String, dynamic>{};
       if (noPolisi != null) fields['no_polisi'] = noPolisi;
-      if (namaPemilik != null) fields['nama_pemilik'] = namaPemilik;
-      if (pemilikKomersial != null) fields['pemilik_komersial'] = pemilikKomersial;
-      if (pemilikFiskal != null) fields['pemilik_fiskal'] = pemilikFiskal;
+      if (namaPemilik != null) fields['pemilik_komersial'] = namaPemilik;
+      if (pemilikFiskal != null) fields['pemilik_viskal'] = pemilikFiskal;
       if (stnkBerlakuMulai != null) fields['stnk_berlaku_mulai'] = stnkBerlakuMulai;
       if (stnkBerlakuAkhir != null) fields['stnk_berlaku_akhir'] = stnkBerlakuAkhir;
       final formData = FormData.fromMap(fields);

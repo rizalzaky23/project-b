@@ -13,15 +13,15 @@ class Penyewaan extends Model
 
     protected $fillable = [
         'kendaraan_id',
-        'kode_penyewa',
+        'nama_penyewa',
         'group',
         'masa_sewa',
         'tanggal_mulai',
         'tanggal_selesai',
         'penanggung_jawab',
         'lokasi_sewa',
-        'sales',
         'nilai_sewa',
+        'surat_perjanjian',
     ];
 
     protected $casts = [
