@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+
 import 'package:image_picker/image_picker.dart';
 import '../../domain/entities/kendaraan_entity.dart';
 import '../../domain/repositories/kendaraan_repository.dart';
@@ -19,6 +20,8 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
     String? merk,
     String? warna,
     int? tahunPembuatan,
+    String? kepemilikan,
+    String? status,
   }) async {
     try {
       final result = await _remote.getAll(
@@ -27,6 +30,8 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
         merk: merk,
         warna: warna,
         tahunPembuatan: tahunPembuatan,
+        kepemilikan: kepemilikan,
+        status: status,
       );
       return (items: result.items.cast<KendaraanEntity>(), meta: result.meta);
     } on DioException catch (e) {
@@ -54,7 +59,12 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
     required int tahunPerolehan,
     required int tahunPembuatan,
     required double hargaPerolehan,
-    String? dealer,
+    String? kepemilikan,
+    String? jenisPembayaran,
+    String? jenisKredit,
+    int? tenor,
+    XFile? fileKontrak,
+    bool fileKontrakDeleted = false,
     XFile? fotoDepan,
     XFile? fotoKiri,
     XFile? fotoKanan,
@@ -71,7 +81,12 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
         tahunPerolehan: tahunPerolehan,
         tahunPembuatan: tahunPembuatan,
         hargaPerolehan: hargaPerolehan,
-        dealer: dealer,
+        kepemilikan: kepemilikan,
+        jenisPembayaran: jenisPembayaran,
+        jenisKredit: jenisKredit,
+        tenor: tenor,
+        fileKontrak: fileKontrak,
+        fileKontrakDeleted: fileKontrakDeleted,
         fotoDepan: fotoDepan,
         fotoKiri: fotoKiri,
         fotoKanan: fotoKanan,
@@ -95,7 +110,12 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
     int? tahunPerolehan,
     int? tahunPembuatan,
     double? hargaPerolehan,
-    String? dealer,
+    String? kepemilikan,
+    String? jenisPembayaran,
+    String? jenisKredit,
+    int? tenor,
+    XFile? fileKontrak,
+    bool fileKontrakDeleted = false,
     XFile? fotoDepan,
     XFile? fotoKiri,
     XFile? fotoKanan,
@@ -104,6 +124,9 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
     bool fotoKiriDeleted = false,
     bool fotoKananDeleted = false,
     bool fotoBelakangDeleted = false,
+    String? status,
+    String? tanggalJual,
+    double? hargaJual,
   }) async {
     try {
       final formData = await _buildFormData(
@@ -116,7 +139,12 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
         tahunPerolehan: tahunPerolehan,
         tahunPembuatan: tahunPembuatan,
         hargaPerolehan: hargaPerolehan,
-        dealer: dealer,
+        kepemilikan: kepemilikan,
+        jenisPembayaran: jenisPembayaran,
+        jenisKredit: jenisKredit,
+        tenor: tenor,
+        fileKontrak: fileKontrak,
+        fileKontrakDeleted: fileKontrakDeleted,
         fotoDepan: fotoDepan,
         fotoKiri: fotoKiri,
         fotoKanan: fotoKanan,
@@ -125,6 +153,9 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
         fotoKiriDeleted: fotoKiriDeleted,
         fotoKananDeleted: fotoKananDeleted,
         fotoBelakangDeleted: fotoBelakangDeleted,
+        status: status,
+        tanggalJual: tanggalJual,
+        hargaJual: hargaJual,
       );
       return await _remote.update(id, formData);
     } on DioException catch (e) {
@@ -151,7 +182,12 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
     int? tahunPerolehan,
     int? tahunPembuatan,
     double? hargaPerolehan,
-    String? dealer,
+    String? kepemilikan,
+    String? jenisPembayaran,
+    String? jenisKredit,
+    int? tenor,
+    XFile? fileKontrak,
+    bool fileKontrakDeleted = false,
     XFile? fotoDepan,
     XFile? fotoKiri,
     XFile? fotoKanan,
@@ -160,6 +196,9 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
     bool fotoKiriDeleted = false,
     bool fotoKananDeleted = false,
     bool fotoBelakangDeleted = false,
+    String? status,
+    String? tanggalJual,
+    double? hargaJual,
   }) async {
     final fields = <String, dynamic>{};
     if (kodeKendaraan != null) fields['kode_kendaraan'] = kodeKendaraan;
@@ -171,9 +210,21 @@ class KendaraanRepositoryImpl implements KendaraanRepository {
     if (tahunPerolehan != null) fields['tahun_perolehan'] = tahunPerolehan.toString();
     if (tahunPembuatan != null) fields['tahun_pembuatan'] = tahunPembuatan.toString();
     if (hargaPerolehan != null) fields['harga_perolehan'] = hargaPerolehan.toString();
-    if (dealer != null) fields['dealer'] = dealer;
+    if (kepemilikan != null) fields['kepemilikan'] = kepemilikan;
+    if (jenisPembayaran != null) fields['jenis_pembayaran'] = jenisPembayaran;
+    if (jenisKredit != null) fields['jenis_kredit'] = jenisKredit;
+    if (tenor != null) fields['tenor'] = tenor.toString();
+    if (status != null) fields['status'] = status;
+    if (tanggalJual != null) fields['tanggal_jual'] = tanggalJual;
+    if (hargaJual != null) fields['harga_jual'] = hargaJual.toString();
 
     final formData = FormData.fromMap(fields);
+
+    // Upload PDF kontrak — gunakan addPdfToForm agar content-type PDF benar
+    await addPdfToForm(
+      formData, 'file_kontrak', fileKontrak,
+      deleted: fileKontrakDeleted, deleteKey: 'delete_file_kontrak',
+    );
 
     await addFileToForm(formData, 'foto_depan', fotoDepan,
         deleted: fotoDepanDeleted, deleteKey: 'delete_foto_depan');

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/dark_theme.dart';
-import '../../../../shared/utils/format_helper.dart';
+
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
@@ -190,23 +190,7 @@ class _DetailKendaraanListScreenState extends State<DetailKendaraanListScreen> {
                                               fontSize: 13)),
                                     ],
                                   ),
-                                  if (item.berlakuMulai != null) ...[
-                                    const SizedBox(height: 3),
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                            Icons.calendar_today_outlined,
-                                            size: 12,
-                                            color: AppTheme.textSecondary),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                            'Berlaku: ${FormatHelper.date(item.berlakuMulai)}',
-                                            style: const TextStyle(
-                                                color: AppTheme.textSecondary,
-                                                fontSize: 12)),
-                                      ],
-                                    ),
-                                  ],
+
                                 ],
                               ),
                             ),

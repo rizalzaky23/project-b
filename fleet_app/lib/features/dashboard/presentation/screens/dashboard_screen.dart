@@ -285,22 +285,30 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget _buildMenuSection(
       BuildContext context, bool isTablet, bool isDesktop) {
     final items = [
-      const _NavItem('Kendaraan', Icons.directions_car_rounded,
-          AppTheme.primary, '/kendaraan', 'Kelola armada'),
-      const _NavItem('Detail Kendaraan', Icons.description_rounded,
-          Color(0xFF4DB6AC), '/detail-kendaraan', 'STNK & BPKB'),
-      const _NavItem('Asuransi', Icons.health_and_safety_rounded,
-          AppTheme.success, '/asuransi', 'Polis & premi'),
-      const _NavItem('Kejadian', Icons.warning_rounded, AppTheme.warning,
-          '/kejadian', 'Laporan insiden'),
-      const _NavItem('Penyewaan', Icons.assignment_rounded, AppTheme.secondary,
-          '/penyewaan', 'Kontrak sewa'),
+      _NavItem('Kendaraan', Icons.directions_car_rounded,
+          AppTheme.primary, 'Kelola armada',
+          onTap: () => context.push('/kendaraan')),
+      _NavItem('Mobil Terjual', Icons.sell_rounded,
+          const Color(0xFFE53935), 'Filter terjual',
+          onTap: () => context.push('/kendaraan?status=Terjual')),
+      _NavItem('Detail Kendaraan', Icons.description_rounded,
+          const Color(0xFF4DB6AC), 'STNK & BPKB',
+          onTap: () => context.push('/detail-kendaraan')),
+      _NavItem('Asuransi', Icons.health_and_safety_rounded,
+          AppTheme.success, 'Polis & premi',
+          onTap: () => context.push('/asuransi')),
+      _NavItem('Kejadian', Icons.warning_rounded, AppTheme.warning,
+          'Laporan insiden',
+          onTap: () => context.push('/kejadian')),
+      _NavItem('Penyewaan', Icons.assignment_rounded, AppTheme.secondary,
+          'Kontrak sewa',
+          onTap: () => context.push('/penyewaan')),
     ];
 
     final cols = isDesktop
-        ? 5
+        ? 6
         : isTablet
-            ? 5
+            ? 6
             : 3;
     final ratio = isDesktop
         ? 0.95
@@ -562,10 +570,12 @@ class _StatCardState extends State<_StatCard>
 // ─── Nav Item & Menu Card ─────────────────────────────────────────────────────
 
 class _NavItem {
-  final String label, route, subtitle;
+  final String label, subtitle;
   final IconData icon;
   final Color color;
-  const _NavItem(this.label, this.icon, this.color, this.route, this.subtitle);
+  final VoidCallback onTap;
+  const _NavItem(this.label, this.icon, this.color, this.subtitle,
+      {required this.onTap});
 }
 
 class _MenuCard extends StatefulWidget {
@@ -602,7 +612,7 @@ class _MenuCardState extends State<_MenuCard>
       onTapDown: (_) => _pressCtrl.forward(),
       onTapUp: (_) {
         _pressCtrl.reverse();
-        context.push(widget.item.route);
+        widget.item.onTap();
       },
       onTapCancel: () => _pressCtrl.reverse(),
       child: ScaleTransition(

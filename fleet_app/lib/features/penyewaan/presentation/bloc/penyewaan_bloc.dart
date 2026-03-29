@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../domain/entities/penyewaan_entity.dart';
 import '../../domain/repositories/penyewaan_repository.dart';
 import '../../../../shared/utils/failure.dart';
@@ -9,13 +10,16 @@ abstract class PenyewaanEvent extends Equatable { @override List<Object?> get pr
 class PenyewaanLoadRequested extends PenyewaanEvent { final int? kendaraanId; final String? search; final bool? aktif; PenyewaanLoadRequested({this.kendaraanId, this.search, this.aktif}); @override List<Object?> get props => [kendaraanId, search, aktif]; }
 class PenyewaanLoadMoreRequested extends PenyewaanEvent {}
 class PenyewaanCreateRequested extends PenyewaanEvent {
-  final int kendaraanId; final String kodePenyewa, tanggalMulai, tanggalSelesai, penanggungJawab; final bool group; final int masaSewa; final double nilaiSewa; final String? lokasiSewa, sales;
-  PenyewaanCreateRequested({required this.kendaraanId, required this.kodePenyewa, required this.group, required this.masaSewa, required this.tanggalMulai, required this.tanggalSelesai, required this.penanggungJawab, required this.nilaiSewa, this.lokasiSewa, this.sales});
-  @override List<Object?> get props => [kendaraanId, kodePenyewa];
+  final int kendaraanId; final String namaPenyewa, tanggalMulai, tanggalSelesai, penanggungJawab; final bool group; final int masaSewa; final double nilaiSewa; final String? lokasiSewa;
+  final XFile? suratPerjanjian;
+  PenyewaanCreateRequested({required this.kendaraanId, required this.namaPenyewa, required this.group, required this.masaSewa, required this.tanggalMulai, required this.tanggalSelesai, required this.penanggungJawab, required this.nilaiSewa, this.lokasiSewa, this.suratPerjanjian});
+  @override List<Object?> get props => [kendaraanId, namaPenyewa];
 }
 class PenyewaanUpdateRequested extends PenyewaanEvent {
-  final int id; final String? kodePenyewa, tanggalMulai, tanggalSelesai, penanggungJawab, lokasiSewa, sales; final bool? group; final int? masaSewa; final double? nilaiSewa;
-  PenyewaanUpdateRequested({required this.id, this.kodePenyewa, this.group, this.masaSewa, this.tanggalMulai, this.tanggalSelesai, this.penanggungJawab, this.nilaiSewa, this.lokasiSewa, this.sales});
+  final int id; final String? namaPenyewa, tanggalMulai, tanggalSelesai, penanggungJawab, lokasiSewa; final bool? group; final int? masaSewa; final double? nilaiSewa;
+  final XFile? suratPerjanjian;
+  final bool suratPerjanjianDeleted;
+  PenyewaanUpdateRequested({required this.id, this.namaPenyewa, this.group, this.masaSewa, this.tanggalMulai, this.tanggalSelesai, this.penanggungJawab, this.nilaiSewa, this.lokasiSewa, this.suratPerjanjian, this.suratPerjanjianDeleted = false});
   @override List<Object?> get props => [id];
 }
 class PenyewaanDeleteRequested extends PenyewaanEvent { final int id; PenyewaanDeleteRequested(this.id); @override List<Object?> get props => [id]; }
@@ -61,13 +65,13 @@ class PenyewaanBloc extends Bloc<PenyewaanEvent, PenyewaanState> {
 
   Future<void> _onCreate(PenyewaanCreateRequested e, Emitter<PenyewaanState> emit) async {
     emit(PenyewaanActionLoading());
-    try { await _repo.create(kendaraanId: e.kendaraanId, kodePenyewa: e.kodePenyewa, group: e.group, masaSewa: e.masaSewa, tanggalMulai: e.tanggalMulai, tanggalSelesai: e.tanggalSelesai, penanggungJawab: e.penanggungJawab, nilaiSewa: e.nilaiSewa, lokasiSewa: e.lokasiSewa, sales: e.sales); emit(PenyewaanActionSuccess('Penyewaan berhasil ditambahkan')); }
+    try { await _repo.create(kendaraanId: e.kendaraanId, namaPenyewa: e.namaPenyewa, group: e.group, masaSewa: e.masaSewa, tanggalMulai: e.tanggalMulai, tanggalSelesai: e.tanggalSelesai, penanggungJawab: e.penanggungJawab, nilaiSewa: e.nilaiSewa, lokasiSewa: e.lokasiSewa, suratPerjanjian: e.suratPerjanjian); emit(PenyewaanActionSuccess('Penyewaan berhasil ditambahkan')); }
     catch (err) { emit(PenyewaanActionError(err is Failure ? err : ServerFailure(err.toString()))); }
   }
 
   Future<void> _onUpdate(PenyewaanUpdateRequested e, Emitter<PenyewaanState> emit) async {
     emit(PenyewaanActionLoading());
-    try { await _repo.update(id: e.id, kodePenyewa: e.kodePenyewa, group: e.group, masaSewa: e.masaSewa, tanggalMulai: e.tanggalMulai, tanggalSelesai: e.tanggalSelesai, penanggungJawab: e.penanggungJawab, nilaiSewa: e.nilaiSewa, lokasiSewa: e.lokasiSewa, sales: e.sales); emit(PenyewaanActionSuccess('Penyewaan berhasil diperbarui')); }
+    try { await _repo.update(id: e.id, namaPenyewa: e.namaPenyewa, group: e.group, masaSewa: e.masaSewa, tanggalMulai: e.tanggalMulai, tanggalSelesai: e.tanggalSelesai, penanggungJawab: e.penanggungJawab, nilaiSewa: e.nilaiSewa, lokasiSewa: e.lokasiSewa, suratPerjanjian: e.suratPerjanjian, suratPerjanjianDeleted: e.suratPerjanjianDeleted); emit(PenyewaanActionSuccess('Penyewaan berhasil diperbarui')); }
     catch (err) { emit(PenyewaanActionError(err is Failure ? err : ServerFailure(err.toString()))); }
   }
 

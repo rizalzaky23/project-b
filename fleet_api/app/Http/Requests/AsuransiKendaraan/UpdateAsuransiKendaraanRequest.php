@@ -10,7 +10,8 @@ class UpdateAsuransiKendaraanRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('asuransi');
+        $asuransi = $this->route('asuransi');
+        $id = is_object($asuransi) ? $asuransi->getKey() : $asuransi;
 
         return [
             'perusahaan_asuransi' => 'sometimes|string|max:200',

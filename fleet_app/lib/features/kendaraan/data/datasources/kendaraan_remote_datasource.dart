@@ -5,7 +5,7 @@ import '../../../../shared/utils/pagination_meta.dart';
 import '../models/kendaraan_model.dart';
 
 abstract class KendaraanRemoteDataSource {
-  Future<({List<KendaraanModel> items, PaginationMeta meta})> getAll({int page = 1, String? search, String? merk, String? warna, int? tahunPembuatan});
+  Future<({List<KendaraanModel> items, PaginationMeta meta})> getAll({int page = 1, String? search, String? merk, String? warna, int? tahunPembuatan, String? kepemilikan, String? status});
   Future<KendaraanModel> getById(int id);
   Future<KendaraanModel> create(FormData formData);
   Future<KendaraanModel> update(int id, FormData formData);
@@ -17,12 +17,14 @@ class KendaraanRemoteDataSourceImpl implements KendaraanRemoteDataSource {
   KendaraanRemoteDataSourceImpl(this._apiClient);
 
   @override
-  Future<({List<KendaraanModel> items, PaginationMeta meta})> getAll({int page = 1, String? search, String? merk, String? warna, int? tahunPembuatan}) async {
+  Future<({List<KendaraanModel> items, PaginationMeta meta})> getAll({int page = 1, String? search, String? merk, String? warna, int? tahunPembuatan, String? kepemilikan, String? status}) async {
     final params = <String, dynamic>{'page': page};
     if (search != null && search.isNotEmpty) params['search'] = search;
     if (merk != null) params['merk'] = merk;
     if (warna != null) params['warna'] = warna;
     if (tahunPembuatan != null) params['tahun_pembuatan'] = tahunPembuatan;
+    if (kepemilikan != null) params['kepemilikan'] = kepemilikan;
+    if (status != null && status != 'Semua') params['status'] = status;
 
     final response = await _apiClient.get(ApiConstants.kendaraan, queryParameters: params);
     // paginatedResponse: { "data": [...], "meta": {...} }

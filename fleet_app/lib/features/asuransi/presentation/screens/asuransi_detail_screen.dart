@@ -16,7 +16,7 @@ class AsuransiDetailScreen extends StatelessWidget {
   Color get _statusColor => _isActive ? AppTheme.success : AppTheme.textSecondary;
   List<String?> get _photos => [
     item.fotoDepan, item.fotoKiri, item.fotoKanan,
-    item.fotoBelakang, item.fotoDashboard, item.fotoKm,
+    item.fotoBelakang, item.fotoDashboard,
   ].where((p) => p != null && p.isNotEmpty).toList();
 
   @override
@@ -179,6 +179,8 @@ class AsuransiDetailScreen extends StatelessWidget {
           _InfoItem('No. Polis', item.noPolis, Icons.tag),
           _InfoItem('Mulai', FormatHelper.date(item.tanggalMulai), Icons.calendar_today_outlined),
           _InfoItem('Akhir', FormatHelper.date(item.tanggalAkhir), Icons.calendar_month_outlined),
+          if (item.updatedAt != null)
+            _InfoItem('Update Terakhir', FormatHelper.dateTime(item.updatedAt), Icons.update_outlined),
         ]),
         Divider(height: 28, color: Theme.of(context).dividerColor),
         Row(children: [

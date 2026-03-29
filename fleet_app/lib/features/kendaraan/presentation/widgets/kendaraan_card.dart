@@ -27,6 +27,14 @@ class _KendaraanCardState extends State<KendaraanCard>
   late AnimationController _pressCtrl;
   late Animation<double> _scale;
 
+  bool get _isSold => widget.kendaraan.status == 'Terjual';
+
+  // Warna aksen berdasarkan status
+  Color get _accentColor => _isSold ? AppTheme.error : AppTheme.success;
+  Color get _borderColor => _isSold
+      ? AppTheme.error.withOpacity(0.35)
+      : AppTheme.primary.withOpacity(0.18);
+
   @override
   void initState() {
     super.initState();
@@ -55,33 +63,37 @@ class _KendaraanCardState extends State<KendaraanCard>
       onTapCancel: () => _pressCtrl.reverse(),
       child: ScaleTransition(
         scale: _scale,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: AppTheme.primary.withOpacity(0.18),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primary.withOpacity(isDark ? 0.08 : 0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+        child: Opacity(
+          // Kendaraan terjual sedikit diredupkan
+          opacity: _isSold ? 0.72 : 1.0,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: _borderColor,
+                width: _isSold ? 1.5 : 1.5,
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Photo area
-                _buildPhotoSection(),
-                // Info area
-                _buildInfoSection(context),
+              boxShadow: [
+                BoxShadow(
+                  color: _isSold
+                      ? AppTheme.error.withOpacity(isDark ? 0.08 : 0.05)
+                      : AppTheme.primary.withOpacity(isDark ? 0.08 : 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
               ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildPhotoSection(),
+                  _buildInfoSection(context),
+                ],
+              ),
             ),
           ),
         ),
@@ -92,6 +104,7 @@ class _KendaraanCardState extends State<KendaraanCard>
   Widget _buildPhotoSection() {
     return Stack(
       children: [
+        // Foto kendaraan
         AspectRatio(
           aspectRatio: 16 / 9,
           child: widget.kendaraan.fotoDepan != null
@@ -103,19 +116,80 @@ class _KendaraanCardState extends State<KendaraanCard>
                 )
               : _photoPlaceholder(),
         ),
+
+        // Overlay gelap tipis untuk kendaraan terjual
+        if (_isSold)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.0),
+                    Colors.black.withOpacity(0.45),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+        // Status badge bottom-right — selalu tampil di semua card
+        Positioned(
+          bottom: 8,
+          right: 8,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+            decoration: BoxDecoration(
+              color: _isSold
+                  ? AppTheme.error.withOpacity(0.92)
+                  : AppTheme.success.withOpacity(0.92),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: (_isSold ? AppTheme.error : AppTheme.success)
+                      .withOpacity(0.45),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _isSold ? Icons.sell_rounded : Icons.check_circle_rounded,
+                  color: Colors.white,
+                  size: 11,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _isSold ? 'Terjual' : 'Tersedia',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
         // ID badge top-right
         Positioned(
           top: 8,
           right: 8,
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: AppTheme.primary,
+              color: _isSold ? AppTheme.error : AppTheme.primary,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.primary.withOpacity(0.4),
+                  color: (_isSold ? AppTheme.error : AppTheme.primary)
+                      .withOpacity(0.4),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -132,13 +206,13 @@ class _KendaraanCardState extends State<KendaraanCard>
             ),
           ),
         ),
+
         // Kode kendaraan bottom-left
         Positioned(
           bottom: 8,
           left: 8,
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.65),
               borderRadius: BorderRadius.circular(6),
@@ -153,16 +227,65 @@ class _KendaraanCardState extends State<KendaraanCard>
             ),
           ),
         ),
+
+        // Kepemilikan badge top-left (jika ada)
+        if (widget.kendaraan.kepemilikan != null)
+          Positioned(
+            top: 8,
+            left: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: _ptColor(widget.kendaraan.kepemilikan!),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: _ptColor(widget.kendaraan.kepemilikan!)
+                        .withOpacity(0.4),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                widget.kendaraan.kepemilikan!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+          ),
       ],
     );
+  }
+
+  Color _ptColor(String pt) {
+    switch (pt) {
+      case 'PT1':
+        return const Color(0xFF6C63FF);
+      case 'PT2':
+        return const Color(0xFF00C6AE);
+      case 'PT3':
+        return const Color(0xFFFF8C69);
+      default:
+        return AppTheme.primary;
+    }
   }
 
   Widget _photoPlaceholder() {
     return Container(
       color: AppTheme.surfaceVariant,
-      child: const Center(
-        child: Icon(Icons.directions_car_outlined,
-            color: AppTheme.textSecondary, size: 40),
+      child: Center(
+        child: Icon(
+          _isSold ? Icons.no_crash_rounded : Icons.directions_car_outlined,
+          color: _isSold
+              ? AppTheme.error.withOpacity(0.4)
+              : AppTheme.textSecondary,
+          size: 40,
+        ),
       ),
     );
   }
@@ -181,16 +304,18 @@ class _KendaraanCardState extends State<KendaraanCard>
               Expanded(
                 child: Text(
                   '${widget.kendaraan.merk} ${widget.kendaraan.tipe}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
                     letterSpacing: -0.2,
+                    color: _isSold ? AppTheme.textSecondary : null,
+                    decoration: _isSold ? TextDecoration.lineThrough : null,
+                    decorationColor: AppTheme.textSecondary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              // Edit & Delete tightly packed
               GestureDetector(
                 onTap: widget.onEdit,
                 child: Container(
@@ -219,41 +344,80 @@ class _KendaraanCardState extends State<KendaraanCard>
             ],
           ),
           const SizedBox(height: 4),
+
           // No. Chasis
           Text(
             widget.kendaraan.noChasis,
-            style: const TextStyle(
-                color: AppTheme.primary,
+            style: TextStyle(
+                color: _isSold
+                    ? AppTheme.textSecondary.withOpacity(0.7)
+                    : AppTheme.primary,
                 fontSize: 11,
                 fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 6),
+
           // Warna & Tahun chips
           Row(
             children: [
               _Chip(
                 icon: Icons.palette_outlined,
                 label: widget.kendaraan.warna,
+                isSold: _isSold,
               ),
               const SizedBox(width: 6),
               _Chip(
                 icon: Icons.calendar_today_outlined,
                 label: widget.kendaraan.tahunPembuatan.toString(),
+                isSold: _isSold,
               ),
             ],
           ),
           const SizedBox(height: 6),
-          // Harga
-          Text(
-            FormatHelper.currency(widget.kendaraan.hargaPerolehan),
-            style: const TextStyle(
-              color: AppTheme.secondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
+
+          // Baris bawah: harga perolehan / tanggal jual
+          if (_isSold && widget.kendaraan.tanggalJual != null)
+            Row(
+              children: [
+                Icon(Icons.sell_rounded,
+                    size: 11, color: AppTheme.error.withOpacity(0.8)),
+                const SizedBox(width: 4),
+                Text(
+                  'Terjual ${FormatHelper.date(widget.kendaraan.tanggalJual)}',
+                  style: TextStyle(
+                    color: AppTheme.error.withOpacity(0.85),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (widget.kendaraan.hargaJual != null) ...[
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      FormatHelper.currency(widget.kendaraan.hargaJual!),
+                      style: TextStyle(
+                        color: AppTheme.error.withOpacity(0.7),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
+            )
+          else
+            Text(
+              FormatHelper.currency(widget.kendaraan.hargaPerolehan),
+              style: const TextStyle(
+                color: AppTheme.secondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
         ],
       ),
     );
@@ -263,22 +427,31 @@ class _KendaraanCardState extends State<KendaraanCard>
 class _Chip extends StatelessWidget {
   final IconData icon;
   final String label;
+  final bool isSold;
 
-  const _Chip({required this.icon, required this.label});
+  const _Chip({required this.icon, required this.label, this.isSold = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: AppTheme.primary.withOpacity(0.08),
+        color: isSold
+            ? AppTheme.textSecondary.withOpacity(0.08)
+            : AppTheme.primary.withOpacity(0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.15)),
+        border: Border.all(
+          color: isSold
+              ? AppTheme.textSecondary.withOpacity(0.12)
+              : AppTheme.primary.withOpacity(0.15),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: AppTheme.primary),
+          Icon(icon,
+              size: 10,
+              color: isSold ? AppTheme.textSecondary : AppTheme.primary),
           const SizedBox(width: 3),
           Text(
             label,

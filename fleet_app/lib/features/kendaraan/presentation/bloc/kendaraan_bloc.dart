@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+
 import 'package:image_picker/image_picker.dart';
 import '../../domain/entities/kendaraan_entity.dart';
 import '../../domain/repositories/kendaraan_repository.dart';
@@ -14,9 +15,11 @@ abstract class KendaraanEvent extends Equatable {
 
 class KendaraanLoadRequested extends KendaraanEvent {
   final String? search;
-  KendaraanLoadRequested({this.search});
+  final String? kepemilikan;
+  final String? status;
+  KendaraanLoadRequested({this.search, this.kepemilikan, this.status});
   @override
-  List<Object?> get props => [search];
+  List<Object?> get props => [search, kepemilikan, status];
 }
 
 class KendaraanLoadMoreRequested extends KendaraanEvent {}
@@ -25,7 +28,12 @@ class KendaraanCreateRequested extends KendaraanEvent {
   final String kodeKendaraan, merk, tipe, warna, noChasis, noMesin;
   final int tahunPerolehan, tahunPembuatan;
   final double hargaPerolehan;
-  final String? dealer;
+  final String? kepemilikan;
+  final String? jenisPembayaran;
+  final String? jenisKredit;
+  final int? tenor;
+  final XFile? fileKontrak;
+  final bool fileKontrakDeleted;
   final XFile? fotoDepan, fotoKiri, fotoKanan, fotoBelakang;
 
   KendaraanCreateRequested({
@@ -38,7 +46,12 @@ class KendaraanCreateRequested extends KendaraanEvent {
     required this.tahunPerolehan,
     required this.tahunPembuatan,
     required this.hargaPerolehan,
-    this.dealer,
+    this.kepemilikan,
+    this.jenisPembayaran,
+    this.jenisKredit,
+    this.tenor,
+    this.fileKontrak,
+    this.fileKontrakDeleted = false,
     this.fotoDepan,
     this.fotoKiri,
     this.fotoKanan,
@@ -51,11 +64,19 @@ class KendaraanCreateRequested extends KendaraanEvent {
 
 class KendaraanUpdateRequested extends KendaraanEvent {
   final int id;
-  final String? kodeKendaraan, merk, tipe, warna, noChasis, noMesin, dealer;
+  final String? kodeKendaraan, merk, tipe, warna, noChasis, noMesin, kepemilikan;
+  final String? jenisPembayaran;
+  final String? jenisKredit;
+  final int? tenor;
+  final XFile? fileKontrak;
+  final bool fileKontrakDeleted;
   final int? tahunPerolehan, tahunPembuatan;
   final double? hargaPerolehan;
   final XFile? fotoDepan, fotoKiri, fotoKanan, fotoBelakang;
   final bool fotoDepanDeleted, fotoKiriDeleted, fotoKananDeleted, fotoBelakangDeleted;
+  final String? status;
+  final String? tanggalJual;
+  final double? hargaJual;
 
   KendaraanUpdateRequested({
     required this.id,
@@ -68,7 +89,12 @@ class KendaraanUpdateRequested extends KendaraanEvent {
     this.tahunPerolehan,
     this.tahunPembuatan,
     this.hargaPerolehan,
-    this.dealer,
+    this.kepemilikan,
+    this.jenisPembayaran,
+    this.jenisKredit,
+    this.tenor,
+    this.fileKontrak,
+    this.fileKontrakDeleted = false,
     this.fotoDepan,
     this.fotoKiri,
     this.fotoKanan,
@@ -77,6 +103,9 @@ class KendaraanUpdateRequested extends KendaraanEvent {
     this.fotoKiriDeleted = false,
     this.fotoKananDeleted = false,
     this.fotoBelakangDeleted = false,
+    this.status,
+    this.tanggalJual,
+    this.hargaJual,
   });
 
   @override
@@ -149,6 +178,8 @@ class KendaraanActionError extends KendaraanState {
 class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
   final KendaraanRepository _repository;
   String? _lastSearch;
+  String? _lastKepemilikan;
+  String? _lastStatus;
   List<KendaraanEntity> _currentItems = [];
   PaginationMeta? _currentMeta;
 
@@ -163,8 +194,15 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
   Future<void> _onLoad(KendaraanLoadRequested event, Emitter<KendaraanState> emit) async {
     emit(KendaraanLoading());
     _lastSearch = event.search;
+    _lastKepemilikan = event.kepemilikan;
+    _lastStatus = event.status;
     try {
-      final result = await _repository.getAll(page: 1, search: event.search);
+      final result = await _repository.getAll(
+        page: 1,
+        search: event.search,
+        kepemilikan: event.kepemilikan,
+        status: event.status,
+      );
       _currentItems = result.items;
       _currentMeta = result.meta;
       emit(KendaraanLoaded(items: _currentItems, meta: _currentMeta!));
@@ -184,6 +222,8 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
       final result = await _repository.getAll(
         page: _currentMeta!.currentPage + 1,
         search: _lastSearch,
+        kepemilikan: _lastKepemilikan,
+        status: _lastStatus,
       );
       _currentItems = [..._currentItems, ...result.items];
       _currentMeta = result.meta;
@@ -206,7 +246,12 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
         tahunPerolehan: event.tahunPerolehan,
         tahunPembuatan: event.tahunPembuatan,
         hargaPerolehan: event.hargaPerolehan,
-        dealer: event.dealer,
+        kepemilikan: event.kepemilikan,
+        jenisPembayaran: event.jenisPembayaran,
+        jenisKredit: event.jenisKredit,
+        tenor: event.tenor,
+        fileKontrak: event.fileKontrak,
+        fileKontrakDeleted: event.fileKontrakDeleted,
         fotoDepan: event.fotoDepan,
         fotoKiri: event.fotoKiri,
         fotoKanan: event.fotoKanan,
@@ -236,7 +281,12 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
         tahunPerolehan: event.tahunPerolehan,
         tahunPembuatan: event.tahunPembuatan,
         hargaPerolehan: event.hargaPerolehan,
-        dealer: event.dealer,
+        kepemilikan: event.kepemilikan,
+        jenisPembayaran: event.jenisPembayaran,
+        jenisKredit: event.jenisKredit,
+        tenor: event.tenor,
+        fileKontrak: event.fileKontrak,
+        fileKontrakDeleted: event.fileKontrakDeleted,
         fotoDepan: event.fotoDepan,
         fotoKiri: event.fotoKiri,
         fotoKanan: event.fotoKanan,
@@ -245,6 +295,9 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
         fotoKiriDeleted: event.fotoKiriDeleted,
         fotoKananDeleted: event.fotoKananDeleted,
         fotoBelakangDeleted: event.fotoBelakangDeleted,
+        status: event.status,
+        tanggalJual: event.tanggalJual,
+        hargaJual: event.hargaJual,
       );
       emit(KendaraanActionSuccess('Kendaraan berhasil diperbarui'));
     } catch (e) {

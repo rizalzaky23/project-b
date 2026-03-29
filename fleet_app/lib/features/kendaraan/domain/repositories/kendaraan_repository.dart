@@ -9,6 +9,8 @@ abstract class KendaraanRepository {
     String? merk,
     String? warna,
     int? tahunPembuatan,
+    String? kepemilikan,
+    String? status,
   });
 
   Future<KendaraanEntity> getById(int id);
@@ -23,7 +25,12 @@ abstract class KendaraanRepository {
     required int tahunPerolehan,
     required int tahunPembuatan,
     required double hargaPerolehan,
-    String? dealer,
+    String? kepemilikan,
+    String? jenisPembayaran,
+    String? jenisKredit,
+    int? tenor,
+    XFile? fileKontrak,
+    bool fileKontrakDeleted,
     XFile? fotoDepan,
     XFile? fotoKiri,
     XFile? fotoKanan,
@@ -41,7 +48,12 @@ abstract class KendaraanRepository {
     int? tahunPerolehan,
     int? tahunPembuatan,
     double? hargaPerolehan,
-    String? dealer,
+    String? kepemilikan,
+    String? jenisPembayaran,
+    String? jenisKredit,
+    int? tenor,
+    XFile? fileKontrak,
+    bool fileKontrakDeleted,
     XFile? fotoDepan,
     XFile? fotoKiri,
     XFile? fotoKanan,
@@ -50,6 +62,9 @@ abstract class KendaraanRepository {
     bool fotoKiriDeleted,
     bool fotoKananDeleted,
     bool fotoBelakangDeleted,
+    String? status,
+    String? tanggalJual,
+    double? hargaJual,
   });
 
   Future<void> delete(int id);

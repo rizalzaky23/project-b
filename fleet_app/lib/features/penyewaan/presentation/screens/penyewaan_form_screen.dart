@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/app_loading.dart';
+import '../../../../shared/widgets/pdf_picker_widget.dart';
 import '../../domain/entities/penyewaan_entity.dart';
 import '../bloc/penyewaan_bloc.dart';
 
@@ -21,16 +23,18 @@ class PenyewaanFormScreen extends StatefulWidget {
 class _PenyewaanFormScreenState extends State<PenyewaanFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _kendaraanIdCtrl,
-      _kodeCtrl,
+      _namaCtrl,
       _masaSewaCtrl,
       _tglMulaiCtrl,
       _tglSelesaiCtrl,
       _penangCtrl,
       _lokasiCtrl,
-      _salesCtrl,
       _nilaiCtrl;
   DateTime? _tglMulai, _tglSelesai;
   bool _group = false;
+
+  XFile? _suratPerjanjian;
+  bool _suratPerjanjianDel = false;
 
   bool get _isEdit => widget.existing != null;
 
@@ -38,45 +42,26 @@ class _PenyewaanFormScreenState extends State<PenyewaanFormScreen> {
   void initState() {
     super.initState();
     final e = widget.existing;
-    _kendaraanIdCtrl = TextEditingController(
-        text: (widget.kendaraanId ?? e?.kendaraanId)?.toString() ?? '');
-    _kodeCtrl = TextEditingController(text: e?.kodePenyewa ?? '');
+    _kendaraanIdCtrl = TextEditingController(text: (widget.kendaraanId ?? e?.kendaraanId)?.toString() ?? '');
+    _namaCtrl = TextEditingController(text: e?.namaPenyewa ?? '');
     _masaSewaCtrl = TextEditingController(text: e?.masaSewa.toString() ?? '');
-    _tglMulaiCtrl = TextEditingController(
-        text:
-            e?.tanggalMulai != null ? FormatHelper.date(e!.tanggalMulai) : '');
-    _tglSelesaiCtrl = TextEditingController(
-        text: e?.tanggalSelesai != null
-            ? FormatHelper.date(e!.tanggalSelesai)
-            : '');
+    _tglMulaiCtrl = TextEditingController(text: e?.tanggalMulai != null ? FormatHelper.date(e!.tanggalMulai) : '');
+    _tglSelesaiCtrl = TextEditingController(text: e?.tanggalSelesai != null ? FormatHelper.date(e!.tanggalSelesai) : '');
     _penangCtrl = TextEditingController(text: e?.penanggungJawab ?? '');
     _lokasiCtrl = TextEditingController(text: e?.lokasiSewa ?? '');
-    _salesCtrl = TextEditingController(text: e?.sales ?? '');
-    _nilaiCtrl =
-        TextEditingController(text: e?.nilaiSewa.toStringAsFixed(0) ?? '');
+    _nilaiCtrl = TextEditingController(text: e?.nilaiSewa.toStringAsFixed(0) ?? '');
     _group = e?.group ?? false;
   }
 
   @override
   void dispose() {
-    for (final c in [
-      _kendaraanIdCtrl,
-      _kodeCtrl,
-      _masaSewaCtrl,
-      _tglMulaiCtrl,
-      _tglSelesaiCtrl,
-      _penangCtrl,
-      _lokasiCtrl,
-      _salesCtrl,
-      _nilaiCtrl
-    ]) {
+    for (final c in [_kendaraanIdCtrl, _namaCtrl, _masaSewaCtrl, _tglMulaiCtrl, _tglSelesaiCtrl, _penangCtrl, _lokasiCtrl, _nilaiCtrl]) {
       c.dispose();
     }
     super.dispose();
   }
 
-  Future<void> _pickDate(
-      TextEditingController ctrl, void Function(DateTime) onPick) async {
+  Future<void> _pickDate(TextEditingController ctrl, void Function(DateTime) onPick) async {
     final dt = await showDatePicker(
         context: context,
         initialDate: DateTime.now(),
@@ -95,8 +80,7 @@ class _PenyewaanFormScreenState extends State<PenyewaanFormScreen> {
     }
   }
 
-  String? _req(String? v, String l) =>
-      (v == null || v.isEmpty) ? '$l wajib diisi' : null;
+  String? _req(String? v, String l) => (v == null || v.isEmpty) ? '$l wajib diisi' : null;
   String? _num(String? v, String l) {
     if (v == null || v.isEmpty) return '$l wajib diisi';
     if (double.tryParse(v) == null) return '$l harus angka';
@@ -105,16 +89,12 @@ class _PenyewaanFormScreenState extends State<PenyewaanFormScreen> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    final mulai = _tglMulai != null
-        ? FormatHelper.apiDate(_tglMulai!)
-        : widget.existing?.tanggalMulai ?? '';
-    final selesai = _tglSelesai != null
-        ? FormatHelper.apiDate(_tglSelesai!)
-        : widget.existing?.tanggalSelesai ?? '';
+    final mulai = _tglMulai != null ? FormatHelper.apiDate(_tglMulai!) : widget.existing?.tanggalMulai ?? '';
+    final selesai = _tglSelesai != null ? FormatHelper.apiDate(_tglSelesai!) : widget.existing?.tanggalSelesai ?? '';
     if (_isEdit) {
       context.read<PenyewaanBloc>().add(PenyewaanUpdateRequested(
           id: widget.existing!.id,
-          kodePenyewa: _kodeCtrl.text,
+          namaPenyewa: _namaCtrl.text,
           group: _group,
           masaSewa: int.parse(_masaSewaCtrl.text),
           tanggalMulai: mulai,
@@ -122,11 +102,13 @@ class _PenyewaanFormScreenState extends State<PenyewaanFormScreen> {
           penanggungJawab: _penangCtrl.text,
           nilaiSewa: double.parse(_nilaiCtrl.text),
           lokasiSewa: _lokasiCtrl.text.isEmpty ? null : _lokasiCtrl.text,
-          sales: _salesCtrl.text.isEmpty ? null : _salesCtrl.text));
+          suratPerjanjian: _suratPerjanjian,
+          suratPerjanjianDeleted: _suratPerjanjianDel,
+      ));
     } else {
       context.read<PenyewaanBloc>().add(PenyewaanCreateRequested(
           kendaraanId: int.parse(_kendaraanIdCtrl.text),
-          kodePenyewa: _kodeCtrl.text,
+          namaPenyewa: _namaCtrl.text,
           group: _group,
           masaSewa: int.parse(_masaSewaCtrl.text),
           tanggalMulai: mulai,
@@ -134,26 +116,22 @@ class _PenyewaanFormScreenState extends State<PenyewaanFormScreen> {
           penanggungJawab: _penangCtrl.text,
           nilaiSewa: double.parse(_nilaiCtrl.text),
           lokasiSewa: _lokasiCtrl.text.isEmpty ? null : _lokasiCtrl.text,
-          sales: _salesCtrl.text.isEmpty ? null : _salesCtrl.text));
+          suratPerjanjian: _suratPerjanjian,
+      ));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          AppBar(title: Text(_isEdit ? 'Edit Penyewaan' : 'Tambah Penyewaan')),
+      appBar: AppBar(title: Text(_isEdit ? 'Edit Penyewaan' : 'Tambah Penyewaan')),
       body: BlocListener<PenyewaanBloc, PenyewaanState>(
         listener: (ctx, state) {
           if (state is PenyewaanActionSuccess) {
-            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppTheme.success));
+            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: AppTheme.success));
             ctx.pop();
           } else if (state is PenyewaanActionError) {
-            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                content: Text(state.failure.message),
-                backgroundColor: AppTheme.error));
+            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(state.failure.message), backgroundColor: AppTheme.error));
           }
         },
         child: BlocBuilder<PenyewaanBloc, PenyewaanState>(
@@ -178,20 +156,17 @@ class _PenyewaanFormScreenState extends State<PenyewaanFormScreen> {
                               const SizedBox(height: 16)
                             ],
                             AppTextField(
-                                controller: _kodeCtrl,
-                                label: 'Kode Penyewa',
+                                controller: _namaCtrl,
+                                label: 'Nama Penyewa',
                                 prefixIcon: Icons.person_outlined,
-                                validator: (v) => _req(v, 'Kode Penyewa')),
+                                validator: (v) => _req(v, 'Nama Penyewa')),
                             const SizedBox(height: 12),
                             SwitchListTile(
                               value: _group,
                               onChanged: (v) => setState(() => _group = v),
                               title: const Text('Penyewaan Group'),
-                              tileColor: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
+                              tileColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
                             const SizedBox(height: 16),
                             Row(children: [
@@ -201,13 +176,8 @@ class _PenyewaanFormScreenState extends State<PenyewaanFormScreen> {
                                       label: 'Tanggal Mulai',
                                       prefixIcon: Icons.calendar_today_outlined,
                                       readOnly: true,
-                                      onTap: () =>
-                                          _pickDate(_tglMulaiCtrl, (d) {
-                                            _tglMulai = d;
-                                            _calcMasaSewa();
-                                          }),
-                                      validator: (v) =>
-                                          _req(v, 'Tanggal Mulai'))),
+                                      onTap: () => _pickDate(_tglMulaiCtrl, (d) { _tglMulai = d; _calcMasaSewa(); }),
+                                      validator: (v) => _req(v, 'Tanggal Mulai'))),
                               const SizedBox(width: 12),
                               Expanded(
                                   child: AppTextField(
@@ -215,13 +185,8 @@ class _PenyewaanFormScreenState extends State<PenyewaanFormScreen> {
                                       label: 'Tanggal Selesai',
                                       prefixIcon: Icons.event_outlined,
                                       readOnly: true,
-                                      onTap: () =>
-                                          _pickDate(_tglSelesaiCtrl, (d) {
-                                            _tglSelesai = d;
-                                            _calcMasaSewa();
-                                          }),
-                                      validator: (v) =>
-                                          _req(v, 'Tanggal Selesai'))),
+                                      onTap: () => _pickDate(_tglSelesaiCtrl, (d) { _tglSelesai = d; _calcMasaSewa(); }),
+                                      validator: (v) => _req(v, 'Tanggal Selesai'))),
                             ]),
                             const SizedBox(height: 16),
                             AppTextField(
@@ -248,11 +213,15 @@ class _PenyewaanFormScreenState extends State<PenyewaanFormScreen> {
                                 controller: _lokasiCtrl,
                                 label: 'Lokasi Sewa (Opsional)',
                                 prefixIcon: Icons.location_on_outlined),
+                            const SizedBox(height: 24),
+                            const Text('Dokumen PDF', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 15)),
                             const SizedBox(height: 16),
-                            AppTextField(
-                                controller: _salesCtrl,
-                                label: 'Sales (Opsional)',
-                                prefixIcon: Icons.person_outline),
+                            PdfPickerWidget(
+                              label: 'Surat Perjanjian',
+                              pickedFile: _suratPerjanjian,
+                              existingUrl: widget.existing?.suratPerjanjian,
+                              onPdfResult: (r) => setState(() { _suratPerjanjian = r.hasPicked ? r.file : null; _suratPerjanjianDel = r.isDeleted; }),
+                            ),
                             const SizedBox(height: 32),
                             AppButton(
                                 label: _isEdit ? 'Simpan' : 'Tambah',

@@ -16,30 +16,55 @@ class DetailKendaraanLoadRequested extends DetailKendaraanEvent {
 }
 class DetailKendaraanLoadMoreRequested extends DetailKendaraanEvent {}
 class DetailKendaraanCreateRequested extends DetailKendaraanEvent {
-  final int kendaraanId; final String noPolisi, namaPemilik; final String? berlakuMulai;
-  final XFile? fotoStnk, fotoBpkb, fotoNomor, fotoKm;
-  DetailKendaraanCreateRequested({required this.kendaraanId, required this.noPolisi, required this.namaPemilik, this.berlakuMulai, this.fotoStnk, this.fotoBpkb, this.fotoNomor, this.fotoKm});
+  final int kendaraanId;
+  final String noPolisi, namaPemilik;
+  final String? pemilikKomersial, pemilikFiskal;
+  final String? stnkBerlakuMulai, stnkBerlakuAkhir;
+  final XFile? fotoStnk, fotoBpkb, fotoNomor, fotoKm, kartuKir, lembarKir;
+  DetailKendaraanCreateRequested({
+    required this.kendaraanId,
+    required this.noPolisi,
+    required this.namaPemilik,
+    this.pemilikKomersial,
+    this.pemilikFiskal,
+    this.stnkBerlakuMulai,
+    this.stnkBerlakuAkhir,
+    this.fotoStnk,
+    this.fotoBpkb,
+    this.fotoNomor,
+    this.fotoKm,
+    this.kartuKir,
+    this.lembarKir,
+  });
   @override List<Object?> get props => [kendaraanId, noPolisi];
 }
 class DetailKendaraanUpdateRequested extends DetailKendaraanEvent {
   final int id;
-  final String? noPolisi, namaPemilik, berlakuMulai;
-  final XFile? fotoStnk, fotoBpkb, fotoNomor, fotoKm;
-  final bool fotoStnkDeleted, fotoBpkbDeleted, fotoNomorDeleted, fotoKmDeleted;
+  final String? noPolisi, namaPemilik, pemilikKomersial, pemilikFiskal;
+  final String? stnkBerlakuMulai, stnkBerlakuAkhir;
+  final XFile? fotoStnk, fotoBpkb, fotoNomor, fotoKm, kartuKir, lembarKir;
+  final bool fotoStnkDeleted, fotoBpkbDeleted, fotoNomorDeleted, fotoKmDeleted, kartuKirDeleted, lembarKirDeleted;
 
   DetailKendaraanUpdateRequested({
     required this.id,
     this.noPolisi,
     this.namaPemilik,
-    this.berlakuMulai,
+    this.pemilikKomersial,
+    this.pemilikFiskal,
+    this.stnkBerlakuMulai,
+    this.stnkBerlakuAkhir,
     this.fotoStnk,
     this.fotoBpkb,
     this.fotoNomor,
     this.fotoKm,
+    this.kartuKir,
+    this.lembarKir,
     this.fotoStnkDeleted = false,
     this.fotoBpkbDeleted = false,
     this.fotoNomorDeleted = false,
     this.fotoKmDeleted = false,
+    this.kartuKirDeleted = false,
+    this.lembarKirDeleted = false,
   });
   @override List<Object?> get props => [id];
 }
@@ -116,7 +141,21 @@ class DetailKendaraanBloc extends Bloc<DetailKendaraanEvent, DetailKendaraanStat
   Future<void> _onCreate(DetailKendaraanCreateRequested e, Emitter<DetailKendaraanState> emit) async {
     emit(DetailKendaraanActionLoading());
     try {
-      await _repo.create(kendaraanId: e.kendaraanId, noPolisi: e.noPolisi, namaPemilik: e.namaPemilik, berlakuMulai: e.berlakuMulai, fotoStnk: e.fotoStnk, fotoBpkb: e.fotoBpkb, fotoNomor: e.fotoNomor, fotoKm: e.fotoKm);
+      await _repo.create(
+        kendaraanId: e.kendaraanId,
+        noPolisi: e.noPolisi,
+        namaPemilik: e.namaPemilik,
+        pemilikKomersial: e.pemilikKomersial,
+        pemilikFiskal: e.pemilikFiskal,
+        fotoStnk: e.fotoStnk,
+        stnkBerlakuMulai: e.stnkBerlakuMulai,
+        stnkBerlakuAkhir: e.stnkBerlakuAkhir,
+        fotoBpkb: e.fotoBpkb,
+        fotoNomor: e.fotoNomor,
+        fotoKm: e.fotoKm,
+        kartuKir: e.kartuKir,
+        lembarKir: e.lembarKir,
+      );
       emit(DetailKendaraanActionSuccess('Detail kendaraan berhasil ditambahkan'));
     } catch (err) { emit(DetailKendaraanActionError(err is Failure ? err : ServerFailure(err.toString()))); }
   }
@@ -128,15 +167,22 @@ class DetailKendaraanBloc extends Bloc<DetailKendaraanEvent, DetailKendaraanStat
         id: e.id,
         noPolisi: e.noPolisi,
         namaPemilik: e.namaPemilik,
-        berlakuMulai: e.berlakuMulai,
+        pemilikKomersial: e.pemilikKomersial,
+        pemilikFiskal: e.pemilikFiskal,
         fotoStnk: e.fotoStnk,
+        stnkBerlakuMulai: e.stnkBerlakuMulai,
+        stnkBerlakuAkhir: e.stnkBerlakuAkhir,
         fotoBpkb: e.fotoBpkb,
         fotoNomor: e.fotoNomor,
         fotoKm: e.fotoKm,
+        kartuKir: e.kartuKir,
+        lembarKir: e.lembarKir,
         fotoStnkDeleted: e.fotoStnkDeleted,
         fotoBpkbDeleted: e.fotoBpkbDeleted,
         fotoNomorDeleted: e.fotoNomorDeleted,
         fotoKmDeleted: e.fotoKmDeleted,
+        kartuKirDeleted: e.kartuKirDeleted,
+        lembarKirDeleted: e.lembarKirDeleted,
       );
       emit(DetailKendaraanActionSuccess('Detail kendaraan berhasil diperbarui'));
     } catch (err) { emit(DetailKendaraanActionError(err is Failure ? err : ServerFailure(err.toString()))); }

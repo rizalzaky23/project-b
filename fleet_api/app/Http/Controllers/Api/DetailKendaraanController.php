@@ -59,8 +59,13 @@ class DetailKendaraanController extends Controller
 
         foreach ($this->photoFields as $field) {
             if ($request->hasFile($field)) {
+                // Ganti foto lama dengan foto baru
                 $this->photoService->delete($detailKendaraan->$field);
                 $data[$field] = $this->photoService->upload($request->file($field), 'detail_kendaraan');
+            } elseif ($request->input('delete_' . $field) == '1' || $request->input('delete_' . $field) === true) {
+                // Hapus foto tanpa ganti
+                $this->photoService->delete($detailKendaraan->$field);
+                $data[$field] = null;
             }
         }
 

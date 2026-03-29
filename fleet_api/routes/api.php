@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DetailKendaraanController;
 use App\Http\Controllers\Api\KejadianKendaraanController;
 use App\Http\Controllers\Api\KendaraanController;
 use App\Http\Controllers\Api\PenyewaanController;
+use App\Http\Controllers\Api\ServisKendaraanController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Public Auth Routes ───────────────────────────────────────
@@ -39,4 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Penyewaan
     Route::apiResource('penyewaan', PenyewaanController::class);
+
+    // Servis Kendaraan
+    Route::apiResource('servis-kendaraan', ServisKendaraanController::class)
+        ->parameters(['servis-kendaraan' => 'servis']);
 });

@@ -7,7 +7,7 @@ class AsuransiModel extends AsuransiEntity {
     required super.jenisAsuransi, required super.tanggalMulai, required super.tanggalAkhir,
     required super.noPolis, required super.nilaiPremi, required super.nilaiPertanggungan,
     super.fotoDepan, super.fotoKiri, super.fotoKanan, super.fotoBelakang,
-    super.fotoDashboard, super.fotoKm, super.kendaraan,
+    super.fotoDashboard, super.updatedAt, super.kendaraan,
   });
 
   factory AsuransiModel.fromJson(Map<String, dynamic> j) => AsuransiModel(
@@ -25,7 +25,7 @@ class AsuransiModel extends AsuransiEntity {
     fotoKanan: ApiConstants.photoUrl(j['foto_kanan']),
     fotoBelakang: ApiConstants.photoUrl(j['foto_belakang']),
     fotoDashboard: ApiConstants.photoUrl(j['foto_dashboard']),
-    fotoKm: ApiConstants.photoUrl(j['foto_km']),
+    updatedAt: j['updated_at'],
     kendaraan: j['kendaraan'] as Map<String, dynamic>?,
   );
 }

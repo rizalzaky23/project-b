@@ -60,8 +60,13 @@ class KejadianKendaraanController extends Controller
 
         foreach ($this->photoFields as $field) {
             if ($request->hasFile($field)) {
+                // Ganti foto lama dengan foto baru
                 $this->photoService->delete($kejadian->$field);
                 $data[$field] = $this->photoService->upload($request->file($field), 'kejadian');
+            } elseif ($request->input('delete_' . $field) == '1' || $request->input('delete_' . $field) === true) {
+                // Hapus foto tanpa ganti
+                $this->photoService->delete($kejadian->$field);
+                $data[$field] = null;
             }
         }
 

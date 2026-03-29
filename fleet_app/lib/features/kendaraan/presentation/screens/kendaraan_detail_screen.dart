@@ -1,14 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
 import '../../../../shared/widgets/photo_viewer_widget.dart';
 import '../../domain/entities/kendaraan_entity.dart';
+import '../bloc/kendaraan_bloc.dart';
+import '../widgets/jual_kendaraan_dialog.dart';
 
-class KendaraanDetailScreen extends StatelessWidget {
+class KendaraanDetailScreen extends StatefulWidget {
   final KendaraanEntity kendaraan;
 
   const KendaraanDetailScreen({super.key, required this.kendaraan});
+
+  @override
+  State<KendaraanDetailScreen> createState() => _KendaraanDetailScreenState();
+}
+
+class _KendaraanDetailScreenState extends State<KendaraanDetailScreen> {
+  late KendaraanEntity _kendaraan;
+
+  @override
+  void initState() {
+    super.initState();
+    _kendaraan = widget.kendaraan;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,13 +50,69 @@ class KendaraanDetailScreen extends StatelessWidget {
             const SizedBox(width: 10),
             Flexible(
               child: Text(
-                '${kendaraan.merk} ${kendaraan.tipe}',
+                '${_kendaraan.merk} ${_kendaraan.tipe}',
                 overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
         actions: [
+          if (_kendaraan.status != 'Terjual')
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final sold = await showDialog<bool>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<KendaraanBloc>(),
+                      child: JualKendaraanDialog(kendaraan: _kendaraan),
+                    ),
+                  );
+                  if (sold == true && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.check_circle_rounded,
+                                color: Colors.white, size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                '${_kendaraan.merk} ${_kendaraan.tipe} berhasil dijual!',
+                              ),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: AppTheme.success,
+                        duration: const Duration(seconds: 3),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        margin: const EdgeInsets.all(12),
+                      ),
+                    );
+                    // Refresh list lalu pop kembali ke list kendaraan
+                    if (mounted) {
+                      context
+                          .read<KendaraanBloc>()
+                          .add(KendaraanLoadRequested());
+                      context.pop();
+                    }
+                  }
+                },
+                icon: const Icon(Icons.sell_rounded, size: 16),
+                label: const Text('Jual'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.success,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  minimumSize: const Size(0, 36),
+                ),
+              ),
+            ),
           IconButton(
             icon: Container(
               padding: const EdgeInsets.all(7),
@@ -50,8 +123,8 @@ class KendaraanDetailScreen extends StatelessWidget {
               child: const Icon(Icons.edit_outlined,
                   color: AppTheme.primary, size: 18),
             ),
-            onPressed: () =>
-                context.push('/kendaraan/${kendaraan.id}/edit', extra: kendaraan),
+            onPressed: () => context.push('/kendaraan/${_kendaraan.id}/edit',
+                extra: _kendaraan),
           ),
           const SizedBox(width: 8),
         ],
@@ -75,13 +148,11 @@ class KendaraanDetailScreen extends StatelessWidget {
           child: _buildPhotoPanel(context, fill: true),
         ),
         // Divider
-        VerticalDivider(
-            width: 1, color: Theme.of(context).dividerColor),
+        VerticalDivider(width: 1, color: Theme.of(context).dividerColor),
         // Panel info kanan
         Expanded(
           child: SingleChildScrollView(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -90,6 +161,8 @@ class KendaraanDetailScreen extends StatelessWidget {
                 _buildPriceBadge(context),
                 const SizedBox(height: 20),
                 _buildInfoCard(context),
+                const SizedBox(height: 20),
+                _buildPaymentCard(context),
                 const SizedBox(height: 20),
                 _buildRelatedSection(context),
                 const SizedBox(height: 32),
@@ -104,8 +177,7 @@ class KendaraanDetailScreen extends StatelessWidget {
   // ─── Mobile / Tablet: vertikal scroll ────────────────────────────────────
 
   Widget _buildMobileLayout(BuildContext context) {
-    final isTablet =
-        MediaQuery.of(context).size.width >= 600;
+    final isTablet = MediaQuery.of(context).size.width >= 600;
     final hPad = isTablet ? 24.0 : 16.0;
 
     return SingleChildScrollView(
@@ -115,8 +187,7 @@ class KendaraanDetailScreen extends StatelessWidget {
           // Full-width foto
           _buildPhotoPanel(context, fill: false),
           Padding(
-            padding:
-                EdgeInsets.symmetric(horizontal: hPad, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -125,6 +196,8 @@ class KendaraanDetailScreen extends StatelessWidget {
                 _buildPriceBadge(context),
                 const SizedBox(height: 14),
                 _buildInfoCard(context),
+                const SizedBox(height: 14),
+                _buildPaymentCard(context),
                 const SizedBox(height: 14),
                 _buildRelatedSection(context),
                 const SizedBox(height: 32),
@@ -140,10 +213,10 @@ class KendaraanDetailScreen extends StatelessWidget {
 
   Widget _buildPhotoPanel(BuildContext context, {required bool fill}) {
     final photos = [
-      kendaraan.fotoDepan,
-      kendaraan.fotoKiri,
-      kendaraan.fotoKanan,
-      kendaraan.fotoBelakang,
+      _kendaraan.fotoDepan,
+      _kendaraan.fotoKiri,
+      _kendaraan.fotoKanan,
+      _kendaraan.fotoBelakang,
     ].where((p) => p != null && p.isNotEmpty).toList();
 
     if (fill) {
@@ -167,16 +240,14 @@ class KendaraanDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     const Text('Belum ada foto',
-                        style: TextStyle(
-                            color: AppTheme.textSecondary)),
+                        style: TextStyle(color: AppTheme.textSecondary)),
                   ],
                 ),
               )
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: photos.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: 12),
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (ctx, i) => ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: TappablePhoto(
@@ -247,15 +318,43 @@ class KendaraanDetailScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${kendaraan.merk} ${kendaraan.tipe}',
+                '${_kendaraan.merk} ${_kendaraan.tipe}',
                 style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.5),
               ),
-              const SizedBox(height: 4),
+              if (_kendaraan.status == 'Terjual') ...[
+                const SizedBox(height: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.error.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppTheme.error.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.sell_rounded,
+                          size: 14, color: AppTheme.error),
+                      const SizedBox(width: 4),
+                      Text(
+                        'TERJUAL PADA ${FormatHelper.date(_kendaraan.tanggalJual)}',
+                        style: const TextStyle(
+                          color: AppTheme.error,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 6),
               Text(
-                kendaraan.noChasis,
+                _kendaraan.noChasis,
                 style: const TextStyle(
                     color: AppTheme.primary,
                     fontSize: 13,
@@ -265,16 +364,14 @@ class KendaraanDetailScreen extends StatelessWidget {
           ),
         ),
         Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: AppTheme.primary.withOpacity(0.15),
             borderRadius: BorderRadius.circular(20),
-            border:
-                Border.all(color: AppTheme.primary.withOpacity(0.3)),
+            border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
           ),
           child: Text(
-            kendaraan.kodeKendaraan,
+            _kendaraan.kodeKendaraan,
             style: const TextStyle(
                 color: AppTheme.primary,
                 fontWeight: FontWeight.w700,
@@ -301,8 +398,7 @@ class KendaraanDetailScreen extends StatelessWidget {
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: AppTheme.secondary.withOpacity(0.3)),
+        border: Border.all(color: AppTheme.secondary.withOpacity(0.3)),
       ),
       child: Row(
         children: [
@@ -313,10 +409,10 @@ class KendaraanDetailScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Harga Perolehan',
-                  style: TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 11)),
+                  style:
+                      TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
               Text(
-                FormatHelper.currency(kendaraan.hargaPerolehan),
+                FormatHelper.currency(_kendaraan.hargaPerolehan),
                 style: const TextStyle(
                     color: AppTheme.secondary,
                     fontSize: 18,
@@ -356,16 +452,34 @@ class KendaraanDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _infoGrid([
-            ('Merk', kendaraan.merk, Icons.directions_car_outlined),
-            ('Tipe', kendaraan.tipe, Icons.category_outlined),
-            ('Warna', kendaraan.warna, Icons.palette_outlined),
-            ('Tahun Buat', kendaraan.tahunPembuatan.toString(),
-                Icons.calendar_today_outlined),
-            ('Tahun Perolehan', kendaraan.tahunPerolehan.toString(),
-                Icons.calendar_month_outlined),
-            ('No. Chasis', kendaraan.noChasis, Icons.tag),
-            ('No. Mesin', kendaraan.noMesin, Icons.engineering_outlined),
-            ('Dealer', kendaraan.dealer ?? '-', Icons.store_outlined),
+            ('Merk', _kendaraan.merk, Icons.directions_car_outlined),
+            ('Tipe', _kendaraan.tipe, Icons.category_outlined),
+            ('Warna', _kendaraan.warna, Icons.palette_outlined),
+            (
+              'Tahun Buat',
+              _kendaraan.tahunPembuatan.toString(),
+              Icons.calendar_today_outlined
+            ),
+            (
+              'Tahun Perolehan',
+              _kendaraan.tahunPerolehan.toString(),
+              Icons.calendar_month_outlined
+            ),
+            ('No. Rangka', _kendaraan.noChasis, Icons.tag),
+            ('No. Mesin', _kendaraan.noMesin, Icons.engineering_outlined),
+            ('Dealer', _kendaraan.dealer ?? '-', Icons.store_outlined),
+            (
+              'Kepemilikan',
+              _kendaraan.kepemilikan ?? '-',
+              Icons.business_outlined
+            ),
+            if (_kendaraan.status == 'Terjual') ...[
+              (
+                'Harga Jual',
+                FormatHelper.currency(_kendaraan.hargaJual ?? 0),
+                Icons.payments_rounded
+              ),
+            ],
           ]),
         ],
       ),
@@ -385,14 +499,12 @@ class KendaraanDetailScreen extends StatelessWidget {
               Row(
                 children: [
                   Icon(item.$3,
-                      size: 12,
-                      color: AppTheme.primary.withOpacity(0.6)),
+                      size: 12, color: AppTheme.primary.withOpacity(0.6)),
                   const SizedBox(width: 4),
                   Flexible(
                     child: Text(item.$1,
                         style: const TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 11)),
+                            color: AppTheme.textSecondary, fontSize: 11)),
                   ),
                 ],
               ),
@@ -409,22 +521,212 @@ class KendaraanDetailScreen extends StatelessWidget {
     );
   }
 
+  // ─── Payment card ─────────────────────────────────────────────────────────
+
+  Widget _buildPaymentCard(BuildContext context) {
+    final hasPembayaran = _kendaraan.jenisPembayaran != null;
+    final isCredit = _kendaraan.jenisPembayaran == 'credit';
+    final isBank = isCredit && _kendaraan.jenisKredit == 'bank';
+
+    // Helper label
+    String pembayaranLabel(String? v) {
+      switch (v) {
+        case 'cash':
+          return 'Cash';
+        case 'credit':
+          return 'Kredit';
+        default:
+          return '-';
+      }
+    }
+
+    String kreditLabel(String? v) {
+      switch (v) {
+        case 'leasing':
+          return 'Leasing';
+        case 'bank':
+          return 'Bank';
+        default:
+          return '-';
+      }
+    }
+
+    Color ptColor(String? pt) {
+      switch (pt) {
+        case 'PT1':
+          return const Color(0xFF6C63FF);
+        case 'PT2':
+          return const Color(0xFF00C6AE);
+        case 'PT3':
+          return const Color(0xFFFF8C69);
+        default:
+          return AppTheme.primary;
+      }
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Theme.of(context).dividerColor),
+        boxShadow: [
+          BoxShadow(
+              color: AppTheme.secondary.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionHeader(
+            icon: Icons.payment_outlined,
+            label: 'Kepemilikan & Pembayaran',
+            color: AppTheme.secondary,
+          ),
+          const SizedBox(height: 14),
+
+          // Kepemilikan badge
+          if (_kendaraan.kepemilikan != null) ...[
+            Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: ptColor(_kendaraan.kepemilikan).withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color:
+                            ptColor(_kendaraan.kepemilikan).withOpacity(0.4)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: ptColor(_kendaraan.kepemilikan),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _kendaraan.kepemilikan!,
+                        style: TextStyle(
+                          color: ptColor(_kendaraan.kepemilikan),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+          ],
+
+          if (!hasPembayaran)
+            const Text('Belum ada informasi pembayaran.',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 13))
+          else ...[
+            _infoGrid([
+              (
+                'Jenis Pembayaran',
+                pembayaranLabel(_kendaraan.jenisPembayaran),
+                Icons.payment_outlined
+              ),
+              if (isCredit)
+                (
+                  'Jenis Kredit',
+                  kreditLabel(_kendaraan.jenisKredit),
+                  Icons.account_balance_outlined
+                ),
+              if (isBank && _kendaraan.tenor != null)
+                ('Tenor', '${_kendaraan.tenor} bulan', Icons.timer_outlined),
+            ]),
+
+            // Tombol file kontrak
+            if (isBank && _kendaraan.fileKontrak != null) ...[
+              const SizedBox(height: 14),
+              GestureDetector(
+                onTap: () async {
+                  final uri = Uri.tryParse(_kendaraan.fileKontrak!);
+                  if (uri != null && await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE74C3C).withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: const Color(0xFFE74C3C).withOpacity(0.4),
+                        width: 1.5),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE74C3C).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.picture_as_pdf_rounded,
+                            color: Color(0xFFE74C3C), size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _kendaraan.fileKontrak!.split('/').last,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w600, fontSize: 13),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const Text('Ketuk untuk membuka PDF kontrak',
+                                style: TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.open_in_new_rounded,
+                          color: Color(0xFFE74C3C), size: 18),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
   // ─── Related section ─────────────────────────────────────────────────────
 
   Widget _buildRelatedSection(BuildContext context) {
     final actions = [
-      _RelatedItem('Detail', Icons.description_rounded,
-          const Color(0xFF4DB6AC),
-          '/detail-kendaraan?kendaraan_id=${kendaraan.id}'),
+      _RelatedItem('Detail', Icons.description_rounded, const Color(0xFF4DB6AC),
+          '/detail-kendaraan?kendaraan_id=${_kendaraan.id}'),
       _RelatedItem('Asuransi', Icons.health_and_safety_rounded,
-          AppTheme.success,
-          '/asuransi?kendaraan_id=${kendaraan.id}'),
-      _RelatedItem('Kejadian', Icons.warning_rounded,
-          AppTheme.warning,
-          '/kejadian?kendaraan_id=${kendaraan.id}'),
-      _RelatedItem('Penyewaan', Icons.assignment_rounded,
-          AppTheme.secondary,
-          '/penyewaan?kendaraan_id=${kendaraan.id}'),
+          AppTheme.success, '/asuransi?kendaraan_id=${_kendaraan.id}'),
+      _RelatedItem('Kejadian', Icons.warning_rounded, AppTheme.warning,
+          '/kejadian?kendaraan_id=${_kendaraan.id}'),
+      _RelatedItem('Penyewaan', Icons.assignment_rounded, AppTheme.secondary,
+          '/penyewaan?kendaraan_id=${_kendaraan.id}'),
+      _RelatedItem('Servis', Icons.build_circle_rounded,
+          const Color(0xFF7B61FF), '/servis?kendaraan_id=${_kendaraan.id}'),
     ];
 
     return Column(
@@ -436,16 +738,17 @@ class KendaraanDetailScreen extends StatelessWidget {
           color: AppTheme.primary,
         ),
         const SizedBox(height: 12),
-        Row(
-          children: actions
-              .map((a) => Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                          right: a == actions.last ? 0 : 8),
-                      child: _RelatedButton(item: a),
-                    ),
-                  ))
-              .toList(),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: actions.length,
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 90,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 0.85,
+          ),
+          itemBuilder: (ctx, i) => _RelatedButton(item: actions[i]),
         ),
       ],
     );
@@ -483,9 +786,7 @@ class _SectionHeader extends StatelessWidget {
         const SizedBox(width: 6),
         Text(label,
             style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: color)),
+                fontSize: 14, fontWeight: FontWeight.w700, color: color)),
       ],
     );
   }
@@ -507,8 +808,7 @@ class _RelatedButton extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push(item.route),
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
         decoration: BoxDecoration(
           color: item.color.withOpacity(0.08),
           borderRadius: BorderRadius.circular(10),
@@ -522,9 +822,7 @@ class _RelatedButton extends StatelessWidget {
             Text(
               item.label,
               style: TextStyle(
-                  color: item.color,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 11),
+                  color: item.color, fontWeight: FontWeight.w600, fontSize: 11),
               textAlign: TextAlign.center,
             ),
           ],

@@ -17,15 +17,15 @@ class AsuransiLoadRequested extends AsuransiEvent {
 class AsuransiLoadMoreRequested extends AsuransiEvent {}
 class AsuransiCreateRequested extends AsuransiEvent {
   final int kendaraanId; final String perusahaanAsuransi, jenisAsuransi, tanggalMulai, tanggalAkhir, noPolis; final double nilaiPremi, nilaiPertanggungan;
-  final XFile? fotoDepan, fotoKiri, fotoKanan, fotoBelakang, fotoDashboard, fotoKm;
-  AsuransiCreateRequested({required this.kendaraanId, required this.perusahaanAsuransi, required this.jenisAsuransi, required this.tanggalMulai, required this.tanggalAkhir, required this.noPolis, required this.nilaiPremi, required this.nilaiPertanggungan, this.fotoDepan, this.fotoKiri, this.fotoKanan, this.fotoBelakang, this.fotoDashboard, this.fotoKm});
+  final XFile? fotoDepan, fotoKiri, fotoKanan, fotoBelakang, fotoDashboard;
+  AsuransiCreateRequested({required this.kendaraanId, required this.perusahaanAsuransi, required this.jenisAsuransi, required this.tanggalMulai, required this.tanggalAkhir, required this.noPolis, required this.nilaiPremi, required this.nilaiPertanggungan, this.fotoDepan, this.fotoKiri, this.fotoKanan, this.fotoBelakang, this.fotoDashboard});
   @override List<Object?> get props => [noPolis];
 }
 class AsuransiUpdateRequested extends AsuransiEvent {
   final int id; final String? perusahaanAsuransi, jenisAsuransi, tanggalMulai, tanggalAkhir, noPolis; final double? nilaiPremi, nilaiPertanggungan;
-  final XFile? fotoDepan, fotoKiri, fotoKanan, fotoBelakang, fotoDashboard, fotoKm;
-  final bool fotoDepanDeleted, fotoKiriDeleted, fotoKananDeleted, fotoBelakangDeleted, fotoDashboardDeleted, fotoKmDeleted;
-  AsuransiUpdateRequested({required this.id, this.perusahaanAsuransi, this.jenisAsuransi, this.tanggalMulai, this.tanggalAkhir, this.noPolis, this.nilaiPremi, this.nilaiPertanggungan, this.fotoDepan, this.fotoKiri, this.fotoKanan, this.fotoBelakang, this.fotoDashboard, this.fotoKm, this.fotoDepanDeleted = false, this.fotoKiriDeleted = false, this.fotoKananDeleted = false, this.fotoBelakangDeleted = false, this.fotoDashboardDeleted = false, this.fotoKmDeleted = false});
+  final XFile? fotoDepan, fotoKiri, fotoKanan, fotoBelakang, fotoDashboard;
+  final bool fotoDepanDeleted, fotoKiriDeleted, fotoKananDeleted, fotoBelakangDeleted, fotoDashboardDeleted;
+  AsuransiUpdateRequested({required this.id, this.perusahaanAsuransi, this.jenisAsuransi, this.tanggalMulai, this.tanggalAkhir, this.noPolis, this.nilaiPremi, this.nilaiPertanggungan, this.fotoDepan, this.fotoKiri, this.fotoKanan, this.fotoBelakang, this.fotoDashboard, this.fotoDepanDeleted = false, this.fotoKiriDeleted = false, this.fotoKananDeleted = false, this.fotoBelakangDeleted = false, this.fotoDashboardDeleted = false});
   @override List<Object?> get props => [id];
 }
 class AsuransiDeleteRequested extends AsuransiEvent {
@@ -79,13 +79,13 @@ class AsuransiBloc extends Bloc<AsuransiEvent, AsuransiState> {
 
   Future<void> _onCreate(AsuransiCreateRequested e, Emitter<AsuransiState> emit) async {
     emit(AsuransiActionLoading());
-    try { await _repo.create(kendaraanId: e.kendaraanId, perusahaanAsuransi: e.perusahaanAsuransi, jenisAsuransi: e.jenisAsuransi, tanggalMulai: e.tanggalMulai, tanggalAkhir: e.tanggalAkhir, noPolis: e.noPolis, nilaiPremi: e.nilaiPremi, nilaiPertanggungan: e.nilaiPertanggungan, fotoDepan: e.fotoDepan, fotoKiri: e.fotoKiri, fotoKanan: e.fotoKanan, fotoBelakang: e.fotoBelakang, fotoDashboard: e.fotoDashboard, fotoKm: e.fotoKm); emit(AsuransiActionSuccess('Asuransi berhasil ditambahkan')); }
+    try { await _repo.create(kendaraanId: e.kendaraanId, perusahaanAsuransi: e.perusahaanAsuransi, jenisAsuransi: e.jenisAsuransi, tanggalMulai: e.tanggalMulai, tanggalAkhir: e.tanggalAkhir, noPolis: e.noPolis, nilaiPremi: e.nilaiPremi, nilaiPertanggungan: e.nilaiPertanggungan, fotoDepan: e.fotoDepan, fotoKiri: e.fotoKiri, fotoKanan: e.fotoKanan, fotoBelakang: e.fotoBelakang, fotoDashboard: e.fotoDashboard); emit(AsuransiActionSuccess('Asuransi berhasil ditambahkan')); }
     catch (err) { emit(AsuransiActionError(err is Failure ? err : ServerFailure(err.toString()))); }
   }
 
   Future<void> _onUpdate(AsuransiUpdateRequested e, Emitter<AsuransiState> emit) async {
     emit(AsuransiActionLoading());
-    try { await _repo.update(id: e.id, perusahaanAsuransi: e.perusahaanAsuransi, jenisAsuransi: e.jenisAsuransi, tanggalMulai: e.tanggalMulai, tanggalAkhir: e.tanggalAkhir, noPolis: e.noPolis, nilaiPremi: e.nilaiPremi, nilaiPertanggungan: e.nilaiPertanggungan, fotoDepan: e.fotoDepan, fotoKiri: e.fotoKiri, fotoKanan: e.fotoKanan, fotoBelakang: e.fotoBelakang, fotoDashboard: e.fotoDashboard, fotoKm: e.fotoKm, fotoDepanDeleted: e.fotoDepanDeleted, fotoKiriDeleted: e.fotoKiriDeleted, fotoKananDeleted: e.fotoKananDeleted, fotoBelakangDeleted: e.fotoBelakangDeleted, fotoDashboardDeleted: e.fotoDashboardDeleted, fotoKmDeleted: e.fotoKmDeleted); emit(AsuransiActionSuccess('Asuransi berhasil diperbarui')); }
+    try { await _repo.update(id: e.id, perusahaanAsuransi: e.perusahaanAsuransi, jenisAsuransi: e.jenisAsuransi, tanggalMulai: e.tanggalMulai, tanggalAkhir: e.tanggalAkhir, noPolis: e.noPolis, nilaiPremi: e.nilaiPremi, nilaiPertanggungan: e.nilaiPertanggungan, fotoDepan: e.fotoDepan, fotoKiri: e.fotoKiri, fotoKanan: e.fotoKanan, fotoBelakang: e.fotoBelakang, fotoDashboard: e.fotoDashboard, fotoDepanDeleted: e.fotoDepanDeleted, fotoKiriDeleted: e.fotoKiriDeleted, fotoKananDeleted: e.fotoKananDeleted, fotoBelakangDeleted: e.fotoBelakangDeleted, fotoDashboardDeleted: e.fotoDashboardDeleted); emit(AsuransiActionSuccess('Asuransi berhasil diperbarui')); }
     catch (err) { emit(AsuransiActionError(err is Failure ? err : ServerFailure(err.toString()))); }
   }
 

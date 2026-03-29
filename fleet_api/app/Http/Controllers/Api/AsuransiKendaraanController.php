@@ -62,12 +62,30 @@ class AsuransiKendaraanController extends Controller
 
     public function update(UpdateAsuransiKendaraanRequest $request, AsuransiKendaraan $asuransi)
     {
-        $data = $request->validated();
+        // Build $data MANUAL - hanya field yang aman untuk fillable
+        // JANGAN gunakan $request->validated() langsung karena bisa include field tak terduga
+        $data = [];
+
+        $textFields = [
+            'perusahaan_asuransi', 'jenis_asuransi', 'tanggal_mulai',
+            'tanggal_akhir', 'no_polis', 'nilai_premi', 'nilai_pertanggungan',
+        ];
+
+        foreach ($textFields as $field) {
+            if ($request->has($field)) {
+                $data[$field] = $request->input($field);
+            }
+        }
 
         foreach ($this->photoFields as $field) {
             if ($request->hasFile($field)) {
+                // Ganti foto lama dengan foto baru
                 $this->photoService->delete($asuransi->$field);
                 $data[$field] = $this->photoService->upload($request->file($field), 'asuransi');
+            } elseif ($request->input('delete_' . $field) == '1') {
+                // Hapus foto tanpa ganti
+                $this->photoService->delete($asuransi->$field);
+                $data[$field] = null;
             }
         }
 

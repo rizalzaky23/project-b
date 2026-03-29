@@ -12,7 +12,7 @@ class ApiHelper {
     final statusCode = e.response?.statusCode;
     final data = e.response?.data;
 
-    if (statusCode == 401) {
+    if (statusCode == 401 || statusCode == 403) {
       return const UnauthorizedFailure();
     }
 

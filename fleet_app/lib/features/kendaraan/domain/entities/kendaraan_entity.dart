@@ -12,10 +12,18 @@ class KendaraanEntity extends Equatable {
   final int tahunPembuatan;
   final double hargaPerolehan;
   final String? dealer;
+  final String? kepemilikan;
+  final String? jenisPembayaran;
+  final String? jenisKredit;
+  final int? tenor;
+  final String? fileKontrak;
   final String? fotoDepan;
   final String? fotoKiri;
   final String? fotoKanan;
   final String? fotoBelakang;
+  final String? status;
+  final String? tanggalJual;
+  final double? hargaJual;
   final String? createdAt;
 
   const KendaraanEntity({
@@ -30,10 +38,18 @@ class KendaraanEntity extends Equatable {
     required this.tahunPembuatan,
     required this.hargaPerolehan,
     this.dealer,
+    this.kepemilikan,
+    this.jenisPembayaran,
+    this.jenisKredit,
+    this.tenor,
+    this.fileKontrak,
     this.fotoDepan,
     this.fotoKiri,
     this.fotoKanan,
     this.fotoBelakang,
+    this.status,
+    this.tanggalJual,
+    this.hargaJual,
     this.createdAt,
   });
 

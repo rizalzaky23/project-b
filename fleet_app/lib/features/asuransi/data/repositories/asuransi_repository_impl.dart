@@ -11,7 +11,7 @@ class AsuransiRepositoryImpl implements AsuransiRepository {
   final AsuransiRemoteDataSource _remote;
   AsuransiRepositoryImpl(this._remote);
 
-  Future<FormData> _buildForm({int? kendaraanId, String? perusahaanAsuransi, String? jenisAsuransi, String? tanggalMulai, String? tanggalAkhir, String? noPolis, double? nilaiPremi, double? nilaiPertanggungan, XFile? fotoDepan, XFile? fotoKiri, XFile? fotoKanan, XFile? fotoBelakang, XFile? fotoDashboard, XFile? fotoKm, bool fotoDepanDeleted = false, bool fotoKiriDeleted = false, bool fotoKananDeleted = false, bool fotoBelakangDeleted = false, bool fotoDashboardDeleted = false, bool fotoKmDeleted = false}) async {
+  Future<FormData> _buildForm({int? kendaraanId, String? perusahaanAsuransi, String? jenisAsuransi, String? tanggalMulai, String? tanggalAkhir, String? noPolis, double? nilaiPremi, double? nilaiPertanggungan, XFile? fotoDepan, XFile? fotoKiri, XFile? fotoKanan, XFile? fotoBelakang, XFile? fotoDashboard, bool fotoDepanDeleted = false, bool fotoKiriDeleted = false, bool fotoKananDeleted = false, bool fotoBelakangDeleted = false, bool fotoDashboardDeleted = false}) async {
     final f = <String, dynamic>{};
     if (kendaraanId != null) f['kendaraan_id'] = kendaraanId.toString();
     if (perusahaanAsuransi != null) f['perusahaan_asuransi'] = perusahaanAsuransi;
@@ -27,7 +27,6 @@ class AsuransiRepositoryImpl implements AsuransiRepository {
     await addFileToForm(formData, 'foto_kanan', fotoKanan, deleted: fotoKananDeleted, deleteKey: 'delete_foto_kanan');
     await addFileToForm(formData, 'foto_belakang', fotoBelakang, deleted: fotoBelakangDeleted, deleteKey: 'delete_foto_belakang');
     await addFileToForm(formData, 'foto_dashboard', fotoDashboard, deleted: fotoDashboardDeleted, deleteKey: 'delete_foto_dashboard');
-    await addFileToForm(formData, 'foto_km', fotoKm, deleted: fotoKmDeleted, deleteKey: 'delete_foto_km');
     return formData;
   }
 
@@ -40,17 +39,17 @@ class AsuransiRepositoryImpl implements AsuransiRepository {
   @override Future<AsuransiEntity> getById(int id) async { try { return await _remote.getById(id); } on DioException catch (e) { throw ApiHelper.handleError(e); } }
 
   @override
-  Future<AsuransiEntity> create({required int kendaraanId, required String perusahaanAsuransi, required String jenisAsuransi, required String tanggalMulai, required String tanggalAkhir, required String noPolis, required double nilaiPremi, required double nilaiPertanggungan, XFile? fotoDepan, XFile? fotoKiri, XFile? fotoKanan, XFile? fotoBelakang, XFile? fotoDashboard, XFile? fotoKm}) async {
+  Future<AsuransiEntity> create({required int kendaraanId, required String perusahaanAsuransi, required String jenisAsuransi, required String tanggalMulai, required String tanggalAkhir, required String noPolis, required double nilaiPremi, required double nilaiPertanggungan, XFile? fotoDepan, XFile? fotoKiri, XFile? fotoKanan, XFile? fotoBelakang, XFile? fotoDashboard}) async {
     try {
-      final form = await _buildForm(kendaraanId: kendaraanId, perusahaanAsuransi: perusahaanAsuransi, jenisAsuransi: jenisAsuransi, tanggalMulai: tanggalMulai, tanggalAkhir: tanggalAkhir, noPolis: noPolis, nilaiPremi: nilaiPremi, nilaiPertanggungan: nilaiPertanggungan, fotoDepan: fotoDepan, fotoKiri: fotoKiri, fotoKanan: fotoKanan, fotoBelakang: fotoBelakang, fotoDashboard: fotoDashboard, fotoKm: fotoKm);
+      final form = await _buildForm(kendaraanId: kendaraanId, perusahaanAsuransi: perusahaanAsuransi, jenisAsuransi: jenisAsuransi, tanggalMulai: tanggalMulai, tanggalAkhir: tanggalAkhir, noPolis: noPolis, nilaiPremi: nilaiPremi, nilaiPertanggungan: nilaiPertanggungan, fotoDepan: fotoDepan, fotoKiri: fotoKiri, fotoKanan: fotoKanan, fotoBelakang: fotoBelakang, fotoDashboard: fotoDashboard);
       return await _remote.create(form);
     } on DioException catch (e) { throw ApiHelper.handleError(e); }
   }
 
   @override
-  Future<AsuransiEntity> update({required int id, String? perusahaanAsuransi, String? jenisAsuransi, String? tanggalMulai, String? tanggalAkhir, String? noPolis, double? nilaiPremi, double? nilaiPertanggungan, XFile? fotoDepan, XFile? fotoKiri, XFile? fotoKanan, XFile? fotoBelakang, XFile? fotoDashboard, XFile? fotoKm, bool fotoDepanDeleted = false, bool fotoKiriDeleted = false, bool fotoKananDeleted = false, bool fotoBelakangDeleted = false, bool fotoDashboardDeleted = false, bool fotoKmDeleted = false}) async {
+  Future<AsuransiEntity> update({required int id, String? perusahaanAsuransi, String? jenisAsuransi, String? tanggalMulai, String? tanggalAkhir, String? noPolis, double? nilaiPremi, double? nilaiPertanggungan, XFile? fotoDepan, XFile? fotoKiri, XFile? fotoKanan, XFile? fotoBelakang, XFile? fotoDashboard, bool fotoDepanDeleted = false, bool fotoKiriDeleted = false, bool fotoKananDeleted = false, bool fotoBelakangDeleted = false, bool fotoDashboardDeleted = false}) async {
     try {
-      final form = await _buildForm(perusahaanAsuransi: perusahaanAsuransi, jenisAsuransi: jenisAsuransi, tanggalMulai: tanggalMulai, tanggalAkhir: tanggalAkhir, noPolis: noPolis, nilaiPremi: nilaiPremi, nilaiPertanggungan: nilaiPertanggungan, fotoDepan: fotoDepan, fotoKiri: fotoKiri, fotoKanan: fotoKanan, fotoBelakang: fotoBelakang, fotoDashboard: fotoDashboard, fotoKm: fotoKm, fotoDepanDeleted: fotoDepanDeleted, fotoKiriDeleted: fotoKiriDeleted, fotoKananDeleted: fotoKananDeleted, fotoBelakangDeleted: fotoBelakangDeleted, fotoDashboardDeleted: fotoDashboardDeleted, fotoKmDeleted: fotoKmDeleted);
+      final form = await _buildForm(perusahaanAsuransi: perusahaanAsuransi, jenisAsuransi: jenisAsuransi, tanggalMulai: tanggalMulai, tanggalAkhir: tanggalAkhir, noPolis: noPolis, nilaiPremi: nilaiPremi, nilaiPertanggungan: nilaiPertanggungan, fotoDepan: fotoDepan, fotoKiri: fotoKiri, fotoKanan: fotoKanan, fotoBelakang: fotoBelakang, fotoDashboard: fotoDashboard, fotoDepanDeleted: fotoDepanDeleted, fotoKiriDeleted: fotoKiriDeleted, fotoKananDeleted: fotoKananDeleted, fotoBelakangDeleted: fotoBelakangDeleted, fotoDashboardDeleted: fotoDashboardDeleted);
       return await _remote.update(id, form);
     } on DioException catch (e) { throw ApiHelper.handleError(e); }
   }

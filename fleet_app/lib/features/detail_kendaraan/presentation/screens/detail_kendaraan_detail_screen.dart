@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
 import '../../../../shared/widgets/photo_viewer_widget.dart';
@@ -14,6 +15,10 @@ class DetailKendaraanDetailScreen extends StatelessWidget {
 
   List<String?> get _photos => [item.fotoStnk, item.fotoBpkb, item.fotoNomor, item.fotoKm]
       .where((p) => p != null && p.isNotEmpty).toList();
+
+  bool get _hasKir =>
+      (item.kartuKir != null && item.kartuKir!.isNotEmpty) ||
+      (item.lembarKir != null && item.lembarKir!.isNotEmpty);
 
   @override
   Widget build(BuildContext context) {
@@ -137,45 +142,24 @@ class DetailKendaraanDetailScreen extends StatelessWidget {
   }
 
   Widget _buildPlateBadge() {
-    return Row(children: [
-      Expanded(child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [_color.withOpacity(0.15), _color.withOpacity(0.05)]),
-          borderRadius: BorderRadius.circular(12), border: Border.all(color: _color.withOpacity(0.3))),
-        child: Row(children: [
-          Container(padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: _color.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-            child: const Icon(Icons.credit_card_outlined, color: _color, size: 18)),
-          const SizedBox(width: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('No. Polisi', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
-            Text(item.noPolisi, style: const TextStyle(color: _color, fontWeight: FontWeight.w700, fontSize: 15)),
-          ]),
-        ]),
-      )),
-      if (item.berlakuMulai != null) ...[
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [_color.withOpacity(0.15), _color.withOpacity(0.05)]),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _color.withOpacity(0.3)),
+      ),
+      child: Row(children: [
+        Container(padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: _color.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+          child: const Icon(Icons.credit_card_outlined, color: _color, size: 18)),
         const SizedBox(width: 12),
-        Expanded(child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [AppTheme.primary.withOpacity(0.15), AppTheme.primary.withOpacity(0.05)]),
-            borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.primary.withOpacity(0.3))),
-          child: Row(children: [
-            Container(padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: AppTheme.primary.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.calendar_today_outlined, color: AppTheme.primary, size: 18)),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Berlaku Mulai', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
-              Text(FormatHelper.date(item.berlakuMulai),
-                  style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700, fontSize: 13),
-                  overflow: TextOverflow.ellipsis),
-            ])),
-          ]),
-        )),
-      ],
-    ]);
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('No. Polisi', style: TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+          Text(item.noPolisi, style: const TextStyle(color: _color, fontWeight: FontWeight.w700, fontSize: 15)),
+        ]),
+      ]),
+    );
   }
 
   Widget _buildInfoCard(BuildContext context) {
@@ -187,16 +171,30 @@ class DetailKendaraanDetailScreen extends StatelessWidget {
         border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [BoxShadow(color: _color.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))]),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+
+        // ── Informasi STNK & BPKB ──
         const _SectionHeader(icon: Icons.credit_card_outlined, label: 'Informasi STNK & BPKB', color: _color),
         const SizedBox(height: 14),
         _InfoGrid(items: [
           _InfoItem('No. Polisi', item.noPolisi, Icons.credit_card_outlined),
           _InfoItem('Nama Pemilik', item.namaPemilik, Icons.person_outline),
-          if (item.berlakuMulai != null)
-            _InfoItem('Berlaku Mulai', FormatHelper.date(item.berlakuMulai), Icons.calendar_today_outlined),
+          if (item.pemilikKomersial != null && item.pemilikKomersial!.isNotEmpty)
+            _InfoItem('Pemilik Komersial', item.pemilikKomersial!, Icons.business_outlined),
+          if (item.pemilikFiskal != null && item.pemilikFiskal!.isNotEmpty)
+            _InfoItem('Pemilik Fiskal', item.pemilikFiskal!, Icons.account_balance_outlined),
           if (item.createdAt != null)
-            _InfoItem('Dibuat', FormatHelper.date(item.createdAt), Icons.access_time_outlined),
+            _InfoItem('Dibuat', _formatDate(item.createdAt), Icons.access_time_outlined),
         ]),
+        // Masa berlaku STNK
+        if (item.stnkBerlakuMulai != null || item.stnkBerlakuAkhir != null) ...[
+          const SizedBox(height: 14),
+          _StnkBerlakuBadge(
+            mulai: item.stnkBerlakuMulai,
+            akhir: item.stnkBerlakuAkhir,
+          ),
+        ],
+
+        // ── Foto Dokumen ──
         if (_photos.isNotEmpty) ...[
           Divider(height: 28, color: Theme.of(context).dividerColor),
           const _SectionHeader(icon: Icons.photo_library_outlined, label: 'Dokumen Foto', color: _color),
@@ -208,11 +206,157 @@ class DetailKendaraanDetailScreen extends StatelessWidget {
             if (item.fotoKm != null && item.fotoKm!.isNotEmpty) const _DocChip('KM', AppTheme.success),
           ]),
         ],
+
+        // ── Dokumen KIR ──
+        if (_hasKir) ...[
+          Divider(height: 28, color: Theme.of(context).dividerColor),
+          const _SectionHeader(icon: Icons.assignment_outlined, label: 'Dokumen KIR', color: Color(0xFF7B61FF)),
+          const SizedBox(height: 10),
+          if (item.kartuKir != null && item.kartuKir!.isNotEmpty)
+            _KirDocRow(label: 'Kartu KIR', url: item.kartuKir!),
+          if (item.kartuKir != null && item.kartuKir!.isNotEmpty &&
+              item.lembarKir != null && item.lembarKir!.isNotEmpty)
+            const SizedBox(height: 8),
+          if (item.lembarKir != null && item.lembarKir!.isNotEmpty)
+            _KirDocRow(label: 'Lembar KIR', url: item.lembarKir!),
+        ],
+
+        // ── Kendaraan ref ──
         if (item.kendaraan != null) ...[
           Divider(height: 28, color: Theme.of(context).dividerColor),
           _KendaraanRef(kendaraan: item.kendaraan!),
         ],
       ]),
+    );
+  }
+
+  String _formatDate(String? raw) => FormatHelper.date(raw);
+}
+
+
+class _StnkBerlakuBadge extends StatelessWidget {
+  final String? mulai;
+  final String? akhir;
+  const _StnkBerlakuBadge({this.mulai, this.akhir});
+
+  static const _teal = Color(0xFF4DB6AC);
+
+  bool _isExpiringSoon(String? akhirStr) {
+    if (akhirStr == null) return false;
+    try {
+      final akhir = DateTime.parse(akhirStr);
+      return akhir.difference(DateTime.now()).inDays <= 30;
+    } catch (_) { return false; }
+  }
+
+  bool _isExpired(String? akhirStr) {
+    if (akhirStr == null) return false;
+    try {
+      return DateTime.parse(akhirStr).isBefore(DateTime.now());
+    } catch (_) { return false; }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final expired = _isExpired(akhir);
+    final expiringSoon = !expired && _isExpiringSoon(akhir);
+    final statusColor = expired
+        ? AppTheme.error
+        : expiringSoon
+            ? AppTheme.warning
+            : _teal;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: statusColor.withOpacity(0.3)),
+      ),
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: statusColor.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(Icons.event_note_outlined, color: statusColor, size: 18),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Masa Berlaku STNK',
+              style: TextStyle(fontSize: 11, color: statusColor, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 3),
+          Text(
+            '${FormatHelper.date(mulai)}  →  ${FormatHelper.date(akhir)}',
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+          ),
+        ])),
+        if (expired)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppTheme.error.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Text('Kadaluarsa',
+                style: TextStyle(color: AppTheme.error, fontSize: 10, fontWeight: FontWeight.w700)),
+          )
+        else if (expiringSoon)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppTheme.warning.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Text('Segera Berakhir',
+                style: TextStyle(color: AppTheme.warning, fontSize: 10, fontWeight: FontWeight.w700)),
+          ),
+      ]),
+    );
+  }
+}
+
+class _KirDocRow extends StatelessWidget {
+  final String label;
+  final String url;
+  const _KirDocRow({required this.label, required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final fileName = Uri.tryParse(url)?.pathSegments.lastOrNull ?? 'dokumen.pdf';
+    return GestureDetector(
+      onTap: () async {
+        final uri = Uri.tryParse(url);
+        if (uri != null && await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF7B61FF).withOpacity(0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFF7B61FF).withOpacity(0.25)),
+        ),
+        child: Row(children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE74C3C).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFE74C3C), size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+            Text(fileName, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+          ])),
+          const Icon(Icons.open_in_new_rounded, size: 16, color: Color(0xFF7B61FF)),
+        ]),
+      ),
     );
   }
 }

@@ -234,7 +234,7 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: Text(item.kodePenyewa,
+                                      child: Text(item.namaPenyewa,
                                           style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 14)),
@@ -348,7 +348,7 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
                                     final ok = await showConfirmDialog(ctx,
                                         title: 'Hapus Penyewaan',
                                         message:
-                                            'Hapus penyewaan ${item.kodePenyewa}?');
+                                            'Hapus penyewaan ${item.namaPenyewa}?');
                                     if (ok && ctx.mounted) {
                                       ctx.read<PenyewaanBloc>().add(
                                           PenyewaanDeleteRequested(

@@ -26,6 +26,10 @@ import '../features/penyewaan/data/datasources/penyewaan_remote_datasource.dart'
 import '../features/penyewaan/data/repositories/penyewaan_repository_impl.dart';
 import '../features/penyewaan/domain/repositories/penyewaan_repository.dart';
 import '../features/penyewaan/presentation/bloc/penyewaan_bloc.dart';
+import '../features/servis/data/datasources/servis_remote_datasource.dart';
+import '../features/servis/data/repositories/servis_repository_impl.dart';
+import '../features/servis/domain/repositories/servis_repository.dart';
+import '../features/servis/presentation/bloc/servis_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -69,4 +73,9 @@ void setupDependencies() {
   sl.registerLazySingleton<PenyewaanRemoteDataSource>(() => PenyewaanRemoteDataSourceImpl(sl()));
   sl.registerLazySingleton<PenyewaanRepository>(() => PenyewaanRepositoryImpl(sl()));
   sl.registerFactory(() => PenyewaanBloc(sl()));
+
+  // Servis
+  sl.registerLazySingleton<ServisRemoteDataSource>(() => ServisRemoteDataSourceImpl(sl()));
+  sl.registerLazySingleton<ServisRepository>(() => ServisRepositoryImpl(sl()));
+  sl.registerFactory(() => ServisBloc(sl()));
 }

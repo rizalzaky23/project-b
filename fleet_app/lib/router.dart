@@ -29,6 +29,11 @@ import 'features/penyewaan/presentation/bloc/penyewaan_bloc.dart';
 import 'features/penyewaan/presentation/screens/penyewaan_list_screen.dart';
 import 'features/penyewaan/presentation/screens/penyewaan_form_screen.dart';
 import 'features/penyewaan/domain/entities/penyewaan_entity.dart';
+import 'features/servis/presentation/bloc/servis_bloc.dart';
+import 'features/servis/presentation/screens/servis_list_screen.dart';
+import 'features/servis/presentation/screens/servis_form_screen.dart';
+import 'features/servis/presentation/screens/servis_detail_screen.dart';
+import 'features/servis/domain/entities/servis_entity.dart';
 import 'injection_container.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -56,15 +61,24 @@ final GoRouter appRouter = GoRouter(
         BlocProvider(create: (_) => sl<PenyewaanBloc>()),
         BlocProvider(create: (_) => sl<AsuransiBloc>()),
         BlocProvider(create: (_) => sl<KejadianBloc>()),
+        BlocProvider(create: (_) => sl<ServisBloc>()),
       ], child: const DashboardScreen()),
     ),
 
     // ── Kendaraan ──────────────────────────────────────────────────────────
     GoRoute(
       path: '/kendaraan',
-      builder: (_, __) => BlocProvider(
+      builder: (ctx, state) {
+        final status = state.uri.queryParameters['status'];
+        final kepemilikan = state.uri.queryParameters['kepemilikan'];
+        return BlocProvider(
           create: (_) => sl<KendaraanBloc>(),
-          child: const KendaraanListScreen()),
+          child: KendaraanListScreen(
+            initialStatus: status,
+            initialKepemilikan: kepemilikan,
+          ),
+        );
+      },
     ),
     GoRoute(
       path: '/kendaraan/create',
@@ -77,7 +91,10 @@ final GoRouter appRouter = GoRouter(
       builder: (ctx, state) {
         final entity = state.extra as KendaraanEntity?;
         if (entity != null) {
-          return KendaraanDetailScreen(kendaraan: entity);
+          return BlocProvider(
+            create: (_) => sl<KendaraanBloc>(),
+            child: KendaraanDetailScreen(kendaraan: entity),
+          );
         }
         return BlocProvider(
           create: (_) => sl<KendaraanBloc>(),
@@ -296,6 +313,55 @@ final GoRouter appRouter = GoRouter(
         );
       },
     ),
+
+    // ── Servis ─────────────────────────────────────────────────────────────
+    GoRoute(
+      path: '/servis',
+      builder: (ctx, state) {
+        final kendaraanId = state.uri.queryParameters['kendaraan_id'];
+        return BlocProvider(
+          create: (_) => sl<ServisBloc>(),
+          child: ServisListScreen(
+              kendaraanId:
+                  kendaraanId != null ? int.parse(kendaraanId) : null),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/servis/create',
+      builder: (ctx, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final kendaraanId = extra?['kendaraanId'] as int?;
+        return BlocProvider(
+          create: (_) => sl<ServisBloc>(),
+          child: ServisFormScreen(kendaraanId: kendaraanId),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/servis/:id',
+      builder: (ctx, state) {
+        final entity = state.extra as ServisEntity?;
+        if (entity != null) {
+          return ServisDetailScreen(item: entity);
+        }
+        return BlocProvider(
+          create: (_) => sl<ServisBloc>(),
+          child: _FetchAndShowServis(
+              id: int.parse(state.pathParameters['id']!)),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/servis/:id/edit',
+      builder: (ctx, state) {
+        final entity = state.extra as ServisEntity?;
+        return BlocProvider(
+          create: (_) => sl<ServisBloc>(),
+          child: ServisFormScreen(existing: entity),
+        );
+      },
+    ),
   ],
 );
 
@@ -476,3 +542,37 @@ class _FetchAndShowPenyewaanState extends State<_FetchAndShowPenyewaan> {
     );
   }
 }
+
+class _FetchAndShowServis extends StatefulWidget {
+  final int id;
+  const _FetchAndShowServis({required this.id});
+  @override
+  State<_FetchAndShowServis> createState() => _FetchAndShowServisState();
+}
+
+class _FetchAndShowServisState extends State<_FetchAndShowServis> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<ServisBloc>().add(ServisLoadRequested());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ServisBloc, ServisState>(
+      builder: (ctx, state) {
+        if (state is ServisLoaded) {
+          try {
+            final item = state.items.firstWhere((k) => k.id == widget.id);
+            return ServisDetailScreen(item: item);
+          } catch (_) {}
+        }
+        if (state is ServisError) {
+          return Scaffold(body: Center(child: Text(state.failure.message)));
+        }
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      },
+    );
+  }
+}
+

@@ -10,7 +10,8 @@ class AsuransiEntity extends Equatable {
   final String noPolis;
   final double nilaiPremi;
   final double nilaiPertanggungan;
-  final String? fotoDepan, fotoKiri, fotoKanan, fotoBelakang, fotoDashboard, fotoKm;
+  final String? fotoDepan, fotoKiri, fotoKanan, fotoBelakang, fotoDashboard;
+  final String? updatedAt;
   final Map<String, dynamic>? kendaraan;
 
   const AsuransiEntity({
@@ -23,7 +24,8 @@ class AsuransiEntity extends Equatable {
     required this.noPolis,
     required this.nilaiPremi,
     required this.nilaiPertanggungan,
-    this.fotoDepan, this.fotoKiri, this.fotoKanan, this.fotoBelakang, this.fotoDashboard, this.fotoKm,
+    this.fotoDepan, this.fotoKiri, this.fotoKanan, this.fotoBelakang, this.fotoDashboard,
+    this.updatedAt,
     this.kendaraan,
   });
 

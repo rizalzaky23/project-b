@@ -30,10 +30,12 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException e, handler) {
-          if (e.response?.statusCode == 401 && !_isAuthenticating) {
+          final status = e.response?.statusCode;
+          if ((status == 401 || status == 403) && !_isAuthenticating) {
             final path = e.requestOptions.path;
             final isAuthEndpoint = path.contains('/auth/login') ||
-                path.contains('/auth/register');
+                path.contains('/auth/register') ||
+                path.contains('/auth/logout');
             if (!isAuthEndpoint) {
               onUnauthorized?.call();
             }
@@ -42,6 +44,14 @@ class ApiClient {
         },
       ),
     );
+
+    // Debug: log semua request dan response
+    _dio.interceptors.add(LogInterceptor(
+      requestHeader: true,
+      responseHeader: false,
+      responseBody: true,
+      error: true,
+    ));
   }
 
   void setAuthenticating(bool value) => _isAuthenticating = value;

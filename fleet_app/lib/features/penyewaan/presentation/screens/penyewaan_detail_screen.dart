@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/penyewaan_entity.dart';
 
 class PenyewaanDetailScreen extends StatelessWidget {
@@ -32,7 +33,7 @@ class PenyewaanDetailScreen extends StatelessWidget {
             child: const Icon(Icons.assignment_rounded, color: Colors.white, size: 16),
           ),
           const SizedBox(width: 10),
-          Flexible(child: Text(item.kodePenyewa, overflow: TextOverflow.ellipsis)),
+          Flexible(child: Text(item.namaPenyewa, overflow: TextOverflow.ellipsis)),
         ]),
         actions: [
           IconButton(
@@ -106,7 +107,7 @@ class PenyewaanDetailScreen extends StatelessWidget {
               boxShadow: [BoxShadow(color: color.withOpacity(0.35), blurRadius: 48, spreadRadius: 4)]),
             child: const Icon(Icons.assignment_rounded, color: Colors.white, size: 72)),
           const SizedBox(height: 24),
-          Text(item.kodePenyewa,
+          Text(item.namaPenyewa,
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
           const SizedBox(height: 8),
           Text(item.penanggungJawab,
@@ -150,7 +151,7 @@ class PenyewaanDetailScreen extends StatelessWidget {
           child: const Icon(Icons.assignment_rounded, color: Colors.white, size: 36)),
         const SizedBox(width: 16),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(item.kodePenyewa,
+          Text(item.namaPenyewa,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
           const SizedBox(height: 4),
           Text(item.penanggungJawab, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
@@ -176,7 +177,7 @@ class PenyewaanDetailScreen extends StatelessWidget {
   Widget _buildTitleRow() {
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(item.kodePenyewa,
+        Text(item.namaPenyewa,
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
         const SizedBox(height: 4),
         Text(item.penanggungJawab,
@@ -231,8 +232,13 @@ class PenyewaanDetailScreen extends StatelessWidget {
           _InfoItem('Tanggal Mulai', FormatHelper.date(item.tanggalMulai), Icons.calendar_today_outlined),
           _InfoItem('Tanggal Selesai', FormatHelper.date(item.tanggalSelesai), Icons.calendar_month_outlined),
           if (item.lokasiSewa != null) _InfoItem('Lokasi', item.lokasiSewa!, Icons.location_on_outlined),
-          if (item.sales != null) _InfoItem('Sales', item.sales!, Icons.support_agent_outlined),
         ]),
+        if (item.suratPerjanjian != null && item.suratPerjanjian!.isNotEmpty) ...[
+          Divider(height: 28, color: Theme.of(context).dividerColor),
+          const _SectionHeader(icon: Icons.assignment_outlined, label: 'Dokumen Perjanjian', color: Color(0xFF7B61FF)),
+          const SizedBox(height: 10),
+          _PdfDocRow(label: 'Surat Perjanjian', url: item.suratPerjanjian!),
+        ],
         if (item.kendaraan != null) ...[
           Divider(height: 28, color: Theme.of(context).dividerColor),
           _KendaraanRef(kendaraan: item.kendaraan!),
@@ -295,5 +301,49 @@ class _KendaraanRef extends StatelessWidget {
       Expanded(child: Text('${kendaraan['merk'] ?? ''} ${kendaraan['tipe'] ?? ''}'.trim(),
           style: const TextStyle(fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis)),
     ]);
+  }
+}
+
+class _PdfDocRow extends StatelessWidget {
+  final String label;
+  final String url;
+  const _PdfDocRow({required this.label, required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final fileName = Uri.tryParse(url)?.pathSegments.lastOrNull ?? 'dokumen.pdf';
+    return GestureDetector(
+      onTap: () async {
+        final uri = Uri.tryParse(url);
+        if (uri != null && await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF7B61FF).withOpacity(0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFF7B61FF).withOpacity(0.25)),
+        ),
+        child: Row(children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE74C3C).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFE74C3C), size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+            Text(fileName, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+          ])),
+          const Icon(Icons.open_in_new_rounded, size: 16, color: Color(0xFF7B61FF)),
+        ]),
+      ),
+    );
   }
 }

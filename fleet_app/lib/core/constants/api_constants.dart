@@ -1,17 +1,19 @@
+import 'api_constants_stub.dart'
+    if (dart.library.io) 'api_constants_io.dart';
 
 class ApiConstants {
-  static const String _azureBaseUrl = 'http://20.39.196.239/api';
-  static const String _storageBaseUrl = 'http://20.39.196.239';
+  static String get baseUrl => getBaseUrl();
 
-  static String get baseUrl => _azureBaseUrl;
+  static String get _storageBaseUrl {
+    // Ambil base host dari baseUrl (hapus '/api' di akhir)
+    return baseUrl.replaceAll('/api', '');
+  }
 
   static String? photoUrl(String? path) {
     if (path == null || path.isEmpty) return null;
-    if (path.contains('localhost')) {
-      path = path.replaceAll('http://localhost', _storageBaseUrl);
-      path = path.replaceAll('/storage/public/', '/storage/');
-    }
+    // Jika sudah URL lengkap, kembalikan apa adanya
     if (path.startsWith('http')) return path;
+    // Tambahkan base host (tanpa /api)
     return '$_storageBaseUrl$path';
   }
 
@@ -28,4 +30,5 @@ class ApiConstants {
   static const String asuransiKendaraan = '/asuransi-kendaraan';
   static const String kejadianKendaraan = '/kejadian-kendaraan';
   static const String penyewaan         = '/penyewaan';
+  static const String servisKendaraan   = '/servis-kendaraan';
 }
