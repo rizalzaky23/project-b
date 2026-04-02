@@ -8,6 +8,7 @@ import '../../../../shared/widgets/photo_viewer_widget.dart';
 import '../../domain/entities/kendaraan_entity.dart';
 import '../bloc/kendaraan_bloc.dart';
 import '../widgets/jual_kendaraan_dialog.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 
 class KendaraanDetailScreen extends StatefulWidget {
   final KendaraanEntity kendaraan;
@@ -57,76 +58,87 @@ class _KendaraanDetailScreenState extends State<KendaraanDetailScreen> {
           ],
         ),
         actions: [
-          if (_kendaraan.status != 'Terjual')
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  final sold = await showDialog<bool>(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<KendaraanBloc>(),
-                      child: JualKendaraanDialog(kendaraan: _kendaraan),
-                    ),
-                  );
-                  if (sold == true && mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(Icons.check_circle_rounded,
-                                color: Colors.white, size: 18),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                '${_kendaraan.merk} ${_kendaraan.tipe} berhasil dijual!',
-                              ),
+          Builder(
+            builder: (context) {
+              final authState = context.read<AuthBloc>().state;
+              final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
+              if (!isAdmin) return const SizedBox.shrink();
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_kendaraan.status != 'Terjual')
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final sold = await showDialog<bool>(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (_) => BlocProvider.value(
+                              value: context.read<KendaraanBloc>(),
+                              child: JualKendaraanDialog(kendaraan: _kendaraan),
                             ),
-                          ],
+                          );
+                          if (sold == true && mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(Icons.check_circle_rounded,
+                                        color: Colors.white, size: 18),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        '${_kendaraan.merk} ${_kendaraan.tipe} berhasil dijual!',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor: AppTheme.success,
+                                duration: const Duration(seconds: 3),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                                margin: const EdgeInsets.all(12),
+                              ),
+                            );
+                            if (mounted) {
+                              context
+                                  .read<KendaraanBloc>()
+                                  .add(KendaraanLoadRequested());
+                              context.pop();
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.sell_rounded, size: 16),
+                        label: const Text('Jual'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.success,
+                          foregroundColor: Colors.white,
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          minimumSize: const Size(0, 36),
                         ),
-                        backgroundColor: AppTheme.success,
-                        duration: const Duration(seconds: 3),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        margin: const EdgeInsets.all(12),
                       ),
-                    );
-                    // Refresh list lalu pop kembali ke list kendaraan
-                    if (mounted) {
-                      context
-                          .read<KendaraanBloc>()
-                          .add(KendaraanLoadRequested());
-                      context.pop();
-                    }
-                  }
-                },
-                icon: const Icon(Icons.sell_rounded, size: 16),
-                label: const Text('Jual'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.success,
-                  foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  minimumSize: const Size(0, 36),
-                ),
-              ),
-            ),
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.edit_outlined,
-                  color: AppTheme.primary, size: 18),
-            ),
-            onPressed: () => context.push('/kendaraan/${_kendaraan.id}/edit',
-                extra: _kendaraan),
+                    ),
+                  IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.edit_outlined,
+                          color: AppTheme.primary, size: 18),
+                    ),
+                    onPressed: () => context.push('/kendaraan/${_kendaraan.id}/edit',
+                        extra: _kendaraan),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              );
+            },
           ),
-          const SizedBox(width: 8),
         ],
       ),
       // Full-screen body tanpa padding global — tiap section atur sendiri

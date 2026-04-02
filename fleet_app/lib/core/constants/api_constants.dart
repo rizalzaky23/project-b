@@ -31,4 +31,5 @@ class ApiConstants {
   static const String kejadianKendaraan = '/kejadian-kendaraan';
   static const String penyewaan         = '/penyewaan';
   static const String servisKendaraan   = '/servis-kendaraan';
+  static const String users             = '/users';
 }

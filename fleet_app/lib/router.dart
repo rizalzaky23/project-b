@@ -34,6 +34,10 @@ import 'features/servis/presentation/screens/servis_list_screen.dart';
 import 'features/servis/presentation/screens/servis_form_screen.dart';
 import 'features/servis/presentation/screens/servis_detail_screen.dart';
 import 'features/servis/domain/entities/servis_entity.dart';
+import 'features/user_management/presentation/bloc/user_bloc.dart';
+import 'features/user_management/presentation/screens/user_list_screen.dart';
+import 'features/user_management/presentation/screens/user_form_screen.dart';
+import 'features/user_management/domain/entities/managed_user_entity.dart';
 import 'injection_container.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -359,6 +363,32 @@ final GoRouter appRouter = GoRouter(
         return BlocProvider(
           create: (_) => sl<ServisBloc>(),
           child: ServisFormScreen(existing: entity),
+        );
+      },
+    ),
+
+    // ── User Management (Super Admin Only) ─────────────────────────────────
+    GoRoute(
+      path: '/users',
+      builder: (_, __) => BlocProvider(
+        create: (_) => sl<UserBloc>(),
+        child: const UserListScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/users/create',
+      builder: (_, __) => BlocProvider(
+        create: (_) => sl<UserBloc>(),
+        child: const UserFormScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/users/:id/edit',
+      builder: (ctx, state) {
+        final entity = state.extra as ManagedUserEntity?;
+        return BlocProvider(
+          create: (_) => sl<UserBloc>(),
+          child: UserFormScreen(existing: entity),
         );
       },
     ),

@@ -6,6 +6,7 @@ import '../../../../shared/utils/format_helper.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/asuransi_bloc.dart';
 
 class AsuransiListScreen extends StatefulWidget {
@@ -232,35 +233,42 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
                               ],
                             ),
                           ),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                  icon: const Icon(Icons.edit_outlined,
-                                      color: AppTheme.primary, size: 20),
-                                  onPressed: () async {
-                                    await ctx.push('/asuransi/${item.id}/edit', extra: item);
-                                    if (ctx.mounted) ctx.read<AsuransiBloc>().add(AsuransiLoadRequested(kendaraanId: widget.kendaraanId));
-                                  },
-                                  padding: const EdgeInsets.all(6),
-                                  constraints: const BoxConstraints()),
-                              const SizedBox(height: 4),
-                              IconButton(
-                                  icon: const Icon(Icons.delete_outline,
-                                      color: AppTheme.error, size: 20),
-                                  onPressed: () async {
-                                    final ok = await showConfirmDialog(ctx,
-                                        title: 'Hapus Asuransi',
-                                        message:
-                                            'Hapus asuransi ${item.noPolis}?');
-                                    if (ok && ctx.mounted) {
-                                      ctx.read<AsuransiBloc>().add(
-                                          AsuransiDeleteRequested(item.id));
-                                    }
-                                  },
-                                  padding: const EdgeInsets.all(6),
-                                  constraints: const BoxConstraints()),
-                            ],
+                          Builder(
+                            builder: (context) {
+                              final authState = context.read<AuthBloc>().state;
+                              final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
+                              if (!isAdmin) return const SizedBox.shrink();
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                      icon: const Icon(Icons.edit_outlined,
+                                          color: AppTheme.primary, size: 20),
+                                      onPressed: () async {
+                                        await ctx.push('/asuransi/${item.id}/edit', extra: item);
+                                        if (ctx.mounted) ctx.read<AsuransiBloc>().add(AsuransiLoadRequested(kendaraanId: widget.kendaraanId));
+                                      },
+                                      padding: const EdgeInsets.all(6),
+                                      constraints: const BoxConstraints()),
+                                  const SizedBox(height: 4),
+                                  IconButton(
+                                      icon: const Icon(Icons.delete_outline,
+                                          color: AppTheme.error, size: 20),
+                                      onPressed: () async {
+                                        final ok = await showConfirmDialog(ctx,
+                                            title: 'Hapus Asuransi',
+                                            message:
+                                                'Hapus asuransi ${item.noPolis}?');
+                                        if (ok && ctx.mounted) {
+                                          ctx.read<AsuransiBloc>().add(
+                                              AsuransiDeleteRequested(item.id));
+                                        }
+                                      },
+                                      padding: const EdgeInsets.all(6),
+                                      constraints: const BoxConstraints()),
+                                ],
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -273,15 +281,22 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await context.push('/asuransi/create', extra: {'kendaraanId': widget.kendaraanId});
-          if (mounted) context.read<AsuransiBloc>().add(AsuransiLoadRequested(kendaraanId: widget.kendaraanId));
+      floatingActionButton: Builder(
+        builder: (context) {
+          final authState = context.read<AuthBloc>().state;
+          final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
+          if (!isAdmin) return const SizedBox.shrink();
+          return FloatingActionButton.extended(
+            onPressed: () async {
+              await context.push('/asuransi/create', extra: {'kendaraanId': widget.kendaraanId});
+              if (mounted) context.read<AsuransiBloc>().add(AsuransiLoadRequested(kendaraanId: widget.kendaraanId));
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Tambah'),
+            backgroundColor: AppTheme.success,
+            foregroundColor: Colors.white,
+          );
         },
-        icon: const Icon(Icons.add),
-        label: const Text('Tambah'),
-        backgroundColor: AppTheme.success,
-        foregroundColor: Colors.white,
       ),
     ),
     );

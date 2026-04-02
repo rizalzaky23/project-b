@@ -19,6 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Jangan redirect ke 'login' untuk API — lempar exception saja
         $middleware->redirectGuestsTo(fn ($request) => null);
+
+        // Daftarkan middleware custom untuk role
+        $middleware->alias([
+            'role.admin'       => \App\Http\Middleware\CheckAdminRole::class,
+            'role.super_admin' => \App\Http\Middleware\CheckSuperAdminRole::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Kembalikan JSON 401 untuk semua request API yang tidak terautentikasi

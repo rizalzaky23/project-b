@@ -6,6 +6,7 @@ import '../../../../shared/utils/format_helper.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/kejadian_bloc.dart';
 
 class KejadianListScreen extends StatefulWidget {
@@ -190,35 +191,42 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
                               ],
                             ),
                           ),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                  icon: const Icon(Icons.edit_outlined,
-                                      color: AppTheme.primary, size: 20),
-                                  onPressed: () async {
-                                    await ctx.push('/kejadian/${item.id}/edit', extra: item);
-                                    if (ctx.mounted) ctx.read<KejadianBloc>().add(KejadianLoadRequested(kendaraanId: widget.kendaraanId));
-                                  },
-                                  padding: const EdgeInsets.all(6),
-                                  constraints: const BoxConstraints()),
-                              const SizedBox(height: 4),
-                              IconButton(
-                                  icon: const Icon(Icons.delete_outline,
-                                      color: AppTheme.error, size: 20),
-                                  onPressed: () async {
-                                    final ok = await showConfirmDialog(ctx,
-                                        title: 'Hapus Kejadian',
-                                        message:
-                                            'Hapus kejadian tanggal ${FormatHelper.date(item.tanggal)}?');
-                                    if (ok && ctx.mounted) {
-                                      ctx.read<KejadianBloc>().add(
-                                          KejadianDeleteRequested(item.id));
-                                    }
-                                  },
-                                  padding: const EdgeInsets.all(6),
-                                  constraints: const BoxConstraints()),
-                            ],
+                          Builder(
+                            builder: (context) {
+                              final authState = context.read<AuthBloc>().state;
+                              final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
+                              if (!isAdmin) return const SizedBox.shrink();
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                      icon: const Icon(Icons.edit_outlined,
+                                          color: AppTheme.primary, size: 20),
+                                      onPressed: () async {
+                                        await ctx.push('/kejadian/${item.id}/edit', extra: item);
+                                        if (ctx.mounted) ctx.read<KejadianBloc>().add(KejadianLoadRequested(kendaraanId: widget.kendaraanId));
+                                      },
+                                      padding: const EdgeInsets.all(6),
+                                      constraints: const BoxConstraints()),
+                                  const SizedBox(height: 4),
+                                  IconButton(
+                                      icon: const Icon(Icons.delete_outline,
+                                          color: AppTheme.error, size: 20),
+                                      onPressed: () async {
+                                        final ok = await showConfirmDialog(ctx,
+                                            title: 'Hapus Kejadian',
+                                            message:
+                                                'Hapus kejadian tanggal ${FormatHelper.date(item.tanggal)}?');
+                                        if (ok && ctx.mounted) {
+                                          ctx.read<KejadianBloc>().add(
+                                              KejadianDeleteRequested(item.id));
+                                        }
+                                      },
+                                      padding: const EdgeInsets.all(6),
+                                      constraints: const BoxConstraints()),
+                                ],
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -231,15 +239,22 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await context.push('/kejadian/create', extra: {'kendaraanId': widget.kendaraanId});
-          if (mounted) context.read<KejadianBloc>().add(KejadianLoadRequested(kendaraanId: widget.kendaraanId));
+      floatingActionButton: Builder(
+        builder: (context) {
+          final authState = context.read<AuthBloc>().state;
+          final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
+          if (!isAdmin) return const SizedBox.shrink();
+          return FloatingActionButton.extended(
+            onPressed: () async {
+              await context.push('/kejadian/create', extra: {'kendaraanId': widget.kendaraanId});
+              if (mounted) context.read<KejadianBloc>().add(KejadianLoadRequested(kendaraanId: widget.kendaraanId));
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Tambah'),
+            backgroundColor: AppTheme.warning,
+            foregroundColor: Colors.white,
+          );
         },
-        icon: const Icon(Icons.add),
-        label: const Text('Tambah'),
-        backgroundColor: AppTheme.warning,
-        foregroundColor: Colors.white,
       ),
     ),
     );

@@ -174,21 +174,41 @@ class _DashboardScreenState extends State<DashboardScreen>
               child: Icon(Icons.person_rounded, color: Colors.white, size: 16),
             ),
           ),
-          itemBuilder: (_) => [
-            const PopupMenuItem(
-              value: 'logout',
-              child: Row(children: [
-                Icon(Icons.logout_rounded, size: 18, color: AppTheme.error),
-                SizedBox(width: 10),
-                Text('Logout',
-                    style: TextStyle(
-                        color: AppTheme.error, fontWeight: FontWeight.w500)),
-              ]),
-            ),
-          ],
+          itemBuilder: (ctx) {
+            final authState = ctx.read<AuthBloc>().state;
+            final isSuperAdmin = authState is AuthAuthenticated &&
+                authState.user.role == 'super_admin';
+            return [
+              if (isSuperAdmin)
+                const PopupMenuItem(
+                  value: 'users',
+                  child: Row(children: [
+                    Icon(Icons.manage_accounts_rounded,
+                        size: 18, color: Color(0xFF6C63FF)),
+                    SizedBox(width: 10),
+                    Text('Kelola User',
+                        style: TextStyle(
+                            color: Color(0xFF6C63FF),
+                            fontWeight: FontWeight.w500)),
+                  ]),
+                ),
+              const PopupMenuItem(
+                value: 'logout',
+                child: Row(children: [
+                  Icon(Icons.logout_rounded, size: 18, color: AppTheme.error),
+                  SizedBox(width: 10),
+                  Text('Logout',
+                      style: TextStyle(
+                          color: AppTheme.error, fontWeight: FontWeight.w500)),
+                ]),
+              ),
+            ];
+          },
           onSelected: (val) {
             if (val == 'logout') {
               context.read<AuthBloc>().add(AuthLogoutRequested());
+            } else if (val == 'users') {
+              context.push('/users');
             }
           },
         ),
@@ -304,6 +324,19 @@ class _DashboardScreenState extends State<DashboardScreen>
           'Kontrak sewa',
           onTap: () => context.push('/penyewaan')),
     ];
+
+    // Tambah menu Kelola User untuk super_admin
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated &&
+        authState.user.role == 'super_admin') {
+      items.add(_NavItem(
+        'Kelola User',
+        Icons.manage_accounts_rounded,
+        const Color(0xFF6C63FF),
+        'Tambah & atur akun',
+        onTap: () => context.push('/users'),
+      ));
+    }
 
     final cols = isDesktop
         ? 6

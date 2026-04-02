@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\KejadianKendaraanController;
 use App\Http\Controllers\Api\KendaraanController;
 use App\Http\Controllers\Api\PenyewaanController;
 use App\Http\Controllers\Api\ServisKendaraanController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Public Auth Routes ───────────────────────────────────────
@@ -23,25 +24,33 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('me',      [AuthController::class, 'me']);
     });
 
-    // Kendaraan
-    Route::apiResource('kendaraan', KendaraanController::class);
+    // ─── API Resources (CRUD Restricted to Admin, Read to All) ────
+    Route::middleware('role.admin')->group(function () {
+        // Kendaraan
+        Route::apiResource('kendaraan', KendaraanController::class);
 
-    // Detail Kendaraan
-    Route::apiResource('detail-kendaraan', DetailKendaraanController::class)
-        ->parameters(['detail-kendaraan' => 'detailKendaraan']);
+        // Detail Kendaraan
+        Route::apiResource('detail-kendaraan', DetailKendaraanController::class)
+            ->parameters(['detail-kendaraan' => 'detailKendaraan']);
 
-    // Asuransi Kendaraan
-    Route::apiResource('asuransi-kendaraan', AsuransiKendaraanController::class)
-        ->parameters(['asuransi-kendaraan' => 'asuransi']);
+        // Asuransi Kendaraan
+        Route::apiResource('asuransi-kendaraan', AsuransiKendaraanController::class)
+            ->parameters(['asuransi-kendaraan' => 'asuransi']);
 
-    // Kejadian Kendaraan
-    Route::apiResource('kejadian-kendaraan', KejadianKendaraanController::class)
-        ->parameters(['kejadian-kendaraan' => 'kejadian']);
+        // Kejadian Kendaraan
+        Route::apiResource('kejadian-kendaraan', KejadianKendaraanController::class)
+            ->parameters(['kejadian-kendaraan' => 'kejadian']);
 
-    // Penyewaan
-    Route::apiResource('penyewaan', PenyewaanController::class);
+        // Penyewaan
+        Route::apiResource('penyewaan', PenyewaanController::class);
 
-    // Servis Kendaraan
-    Route::apiResource('servis-kendaraan', ServisKendaraanController::class)
-        ->parameters(['servis-kendaraan' => 'servis']);
+        // Servis Kendaraan
+        Route::apiResource('servis-kendaraan', ServisKendaraanController::class)
+            ->parameters(['servis-kendaraan' => 'servis']);
+    });
+
+    // ─── User Management (Super Admin Only) ───────────────────────
+    Route::middleware('role.super_admin')->group(function () {
+        Route::apiResource('users', UserController::class)->except(['show']);
+    });
 });

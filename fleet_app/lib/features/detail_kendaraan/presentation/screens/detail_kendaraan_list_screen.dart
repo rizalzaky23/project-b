@@ -6,6 +6,7 @@ import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/detail_kendaraan_bloc.dart';
 
 class DetailKendaraanListScreen extends StatefulWidget {
@@ -194,44 +195,51 @@ class _DetailKendaraanListScreenState extends State<DetailKendaraanListScreen> {
                                 ],
                               ),
                             ),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                    icon: const Icon(Icons.edit_outlined,
-                                        color: AppTheme.primary, size: 20),
-                                    onPressed: () async {
-                                      await context.push(
-                                          '/detail-kendaraan/${item.id}/edit',
-                                          extra: item);
-                                      if (context.mounted) {
-                                        context.read<DetailKendaraanBloc>().add(
-                                            DetailKendaraanLoadRequested(
-                                                kendaraanId:
-                                                    widget.kendaraanId));
-                                      }
-                                    },
-                                    padding: const EdgeInsets.all(6),
-                                    constraints: const BoxConstraints()),
-                                const SizedBox(height: 4),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline,
-                                      color: AppTheme.error, size: 20),
-                                  onPressed: () async {
-                                    final ok = await showConfirmDialog(ctx,
-                                        title: 'Hapus',
-                                        message:
-                                            'Hapus detail ${item.noPolisi}?');
-                                    if (ok && ctx.mounted) {
-                                      ctx.read<DetailKendaraanBloc>().add(
-                                          DetailKendaraanDeleteRequested(
-                                              item.id));
-                                    }
-                                  },
-                                  padding: const EdgeInsets.all(6),
-                                  constraints: const BoxConstraints(),
-                                ),
-                              ],
+                            Builder(
+                              builder: (context) {
+                                final authState = context.read<AuthBloc>().state;
+                                final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
+                                if (!isAdmin) return const SizedBox.shrink();
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                        icon: const Icon(Icons.edit_outlined,
+                                            color: AppTheme.primary, size: 20),
+                                        onPressed: () async {
+                                          await context.push(
+                                              '/detail-kendaraan/${item.id}/edit',
+                                              extra: item);
+                                          if (context.mounted) {
+                                            context.read<DetailKendaraanBloc>().add(
+                                                DetailKendaraanLoadRequested(
+                                                    kendaraanId:
+                                                        widget.kendaraanId));
+                                          }
+                                        },
+                                        padding: const EdgeInsets.all(6),
+                                        constraints: const BoxConstraints()),
+                                    const SizedBox(height: 4),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline,
+                                          color: AppTheme.error, size: 20),
+                                      onPressed: () async {
+                                        final ok = await showConfirmDialog(ctx,
+                                            title: 'Hapus',
+                                            message:
+                                                'Hapus detail ${item.noPolisi}?');
+                                        if (ok && ctx.mounted) {
+                                          ctx.read<DetailKendaraanBloc>().add(
+                                              DetailKendaraanDeleteRequested(
+                                                  item.id));
+                                        }
+                                      },
+                                      padding: const EdgeInsets.all(6),
+                                      constraints: const BoxConstraints(),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -244,23 +252,30 @@ class _DetailKendaraanListScreenState extends State<DetailKendaraanListScreen> {
             },
           ),
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () async {
-            await context.push(
-              '/detail-kendaraan/create',
-              extra: {'kendaraanId': widget.kendaraanId},
+        floatingActionButton: Builder(
+          builder: (context) {
+            final authState = context.read<AuthBloc>().state;
+            final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
+            if (!isAdmin) return const SizedBox.shrink();
+            return FloatingActionButton.extended(
+              onPressed: () async {
+                await context.push(
+                  '/detail-kendaraan/create',
+                  extra: {'kendaraanId': widget.kendaraanId},
+                );
+                if (context.mounted) {
+                  context.read<DetailKendaraanBloc>().add(
+                        DetailKendaraanLoadRequested(
+                            kendaraanId: widget.kendaraanId),
+                      );
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Tambah'),
+              backgroundColor: const Color(0xFF4DB6AC),
+              foregroundColor: Colors.white,
             );
-            if (context.mounted) {
-              context.read<DetailKendaraanBloc>().add(
-                    DetailKendaraanLoadRequested(
-                        kendaraanId: widget.kendaraanId),
-                  );
-            }
           },
-          icon: const Icon(Icons.add),
-          label: const Text('Tambah'),
-          backgroundColor: const Color(0xFF4DB6AC),
-          foregroundColor: Colors.white,
         ),
       ),
     );

@@ -5,6 +5,7 @@ import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/kendaraan_bloc.dart';
 import '../widgets/kendaraan_card.dart';
 
@@ -394,12 +395,21 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
             ),
           ]),
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: _goCreate,
-          icon: const Icon(Icons.add),
-          label: const Text('Tambah'),
-          backgroundColor: AppTheme.primary,
-          foregroundColor: Colors.white,
+        floatingActionButton: Builder(
+          builder: (context) {
+            final authState = context.read<AuthBloc>().state;
+            final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
+            
+            if (!isAdmin) return const SizedBox.shrink();
+            
+            return FloatingActionButton.extended(
+              onPressed: _goCreate,
+              icon: const Icon(Icons.add),
+              label: const Text('Tambah'),
+              backgroundColor: AppTheme.primary,
+              foregroundColor: Colors.white,
+            );
+          }
         ),
       ),
     );

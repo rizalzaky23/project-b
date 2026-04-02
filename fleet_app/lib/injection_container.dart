@@ -30,6 +30,10 @@ import '../features/servis/data/datasources/servis_remote_datasource.dart';
 import '../features/servis/data/repositories/servis_repository_impl.dart';
 import '../features/servis/domain/repositories/servis_repository.dart';
 import '../features/servis/presentation/bloc/servis_bloc.dart';
+import '../features/user_management/data/datasources/user_remote_datasource.dart';
+import '../features/user_management/data/repositories/user_repository_impl.dart';
+import '../features/user_management/domain/repositories/user_repository.dart';
+import '../features/user_management/presentation/bloc/user_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -78,4 +82,9 @@ void setupDependencies() {
   sl.registerLazySingleton<ServisRemoteDataSource>(() => ServisRemoteDataSourceImpl(sl()));
   sl.registerLazySingleton<ServisRepository>(() => ServisRepositoryImpl(sl()));
   sl.registerFactory(() => ServisBloc(sl()));
+
+  // User Management
+  sl.registerLazySingleton<UserRemoteDataSource>(() => UserRemoteDataSourceImpl(sl()));
+  sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(sl()));
+  sl.registerFactory(() => UserBloc(sl()));
 }

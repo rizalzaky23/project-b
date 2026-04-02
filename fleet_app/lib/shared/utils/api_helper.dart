@@ -12,8 +12,12 @@ class ApiHelper {
     final statusCode = e.response?.statusCode;
     final data = e.response?.data;
 
-    if (statusCode == 401 || statusCode == 403) {
+    if (statusCode == 401) {
       return const UnauthorizedFailure();
+    }
+
+    if (statusCode == 403) {
+      return const ServerFailure('Akses ditolak. Anda tidak memiliki izin untuk melakukan aksi ini.');
     }
 
     if (statusCode == 422) {

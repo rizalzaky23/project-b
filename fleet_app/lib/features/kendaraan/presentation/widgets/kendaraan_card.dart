@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/kendaraan_entity.dart';
-
 class KendaraanCard extends StatefulWidget {
   final KendaraanEntity kendaraan;
   final VoidCallback onTap;
@@ -316,30 +317,44 @@ class _KendaraanCardState extends State<KendaraanCard>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              GestureDetector(
-                onTap: widget.onEdit,
-                child: Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Icon(Icons.edit_outlined,
-                      size: 14, color: AppTheme.primary),
-                ),
-              ),
-              const SizedBox(width: 6),
-              GestureDetector(
-                onTap: widget.onDelete,
-                child: Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: AppTheme.error.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Icon(Icons.delete_outline,
-                      size: 14, color: AppTheme.error),
-                ),
+              Builder(
+                builder: (context) {
+                  final authState = context.read<AuthBloc>().state;
+                  final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
+                  
+                  if (!isAdmin) return const SizedBox.shrink();
+                  
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: widget.onEdit,
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(Icons.edit_outlined,
+                              size: 14, color: AppTheme.primary),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: widget.onDelete,
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: AppTheme.error.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(Icons.delete_outline,
+                              size: 14, color: AppTheme.error),
+                        ),
+                      ),
+                    ],
+                  );
+                }
               ),
             ],
           ),

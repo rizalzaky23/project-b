@@ -6,6 +6,7 @@ import '../../../../shared/utils/format_helper.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/servis_bloc.dart';
 
 class ServisListScreen extends StatefulWidget {
@@ -220,41 +221,48 @@ class _ServisListScreenState extends State<ServisListScreen> {
                                 ],
                               ),
                             ),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                    icon: const Icon(Icons.edit_outlined,
-                                        color: AppTheme.primary, size: 20),
-                                    onPressed: () async {
-                                      await ctx.push('/servis/${item.id}/edit',
-                                          extra: item);
-                                      if (ctx.mounted) {
-                                        ctx.read<ServisBloc>().add(
-                                            ServisLoadRequested(
-                                                kendaraanId:
-                                                    widget.kendaraanId));
-                                      }
-                                    },
-                                    padding: const EdgeInsets.all(6),
-                                    constraints: const BoxConstraints()),
-                                const SizedBox(height: 4),
-                                IconButton(
-                                    icon: const Icon(Icons.delete_outline,
-                                        color: AppTheme.error, size: 20),
-                                    onPressed: () async {
-                                      final ok = await showConfirmDialog(ctx,
-                                          title: 'Hapus Servis',
-                                          message:
-                                              'Hapus servis tanggal ${FormatHelper.date(item.tanggalServis)}?');
-                                      if (ok && ctx.mounted) {
-                                        ctx.read<ServisBloc>().add(
-                                            ServisDeleteRequested(item.id));
-                                      }
-                                    },
-                                    padding: const EdgeInsets.all(6),
-                                    constraints: const BoxConstraints()),
-                              ],
+                            Builder(
+                              builder: (context) {
+                                final authState = context.read<AuthBloc>().state;
+                                final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
+                                if (!isAdmin) return const SizedBox.shrink();
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                        icon: const Icon(Icons.edit_outlined,
+                                            color: AppTheme.primary, size: 20),
+                                        onPressed: () async {
+                                          await ctx.push('/servis/${item.id}/edit',
+                                              extra: item);
+                                          if (ctx.mounted) {
+                                            ctx.read<ServisBloc>().add(
+                                                ServisLoadRequested(
+                                                    kendaraanId:
+                                                        widget.kendaraanId));
+                                          }
+                                        },
+                                        padding: const EdgeInsets.all(6),
+                                        constraints: const BoxConstraints()),
+                                    const SizedBox(height: 4),
+                                    IconButton(
+                                        icon: const Icon(Icons.delete_outline,
+                                            color: AppTheme.error, size: 20),
+                                        onPressed: () async {
+                                          final ok = await showConfirmDialog(ctx,
+                                              title: 'Hapus Servis',
+                                              message:
+                                                  'Hapus servis tanggal ${FormatHelper.date(item.tanggalServis)}?');
+                                          if (ok && ctx.mounted) {
+                                            ctx.read<ServisBloc>().add(
+                                                ServisDeleteRequested(item.id));
+                                          }
+                                        },
+                                        padding: const EdgeInsets.all(6),
+                                        constraints: const BoxConstraints()),
+                                  ],
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -267,20 +275,27 @@ class _ServisListScreenState extends State<ServisListScreen> {
             },
           ),
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () async {
-            await context.push('/servis/create',
-                extra: {'kendaraanId': widget.kendaraanId});
-            if (mounted) {
-              context
-                  .read<ServisBloc>()
-                  .add(ServisLoadRequested(kendaraanId: widget.kendaraanId));
-            }
+        floatingActionButton: Builder(
+          builder: (context) {
+            final authState = context.read<AuthBloc>().state;
+            final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
+            if (!isAdmin) return const SizedBox.shrink();
+            return FloatingActionButton.extended(
+              onPressed: () async {
+                await context.push('/servis/create',
+                    extra: {'kendaraanId': widget.kendaraanId});
+                if (mounted) {
+                  context
+                      .read<ServisBloc>()
+                      .add(ServisLoadRequested(kendaraanId: widget.kendaraanId));
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Tambah'),
+              backgroundColor: const Color(0xFF7B61FF),
+              foregroundColor: Colors.white,
+            );
           },
-          icon: const Icon(Icons.add),
-          label: const Text('Tambah'),
-          backgroundColor: const Color(0xFF7B61FF),
-          foregroundColor: Colors.white,
         ),
       ),
     );
