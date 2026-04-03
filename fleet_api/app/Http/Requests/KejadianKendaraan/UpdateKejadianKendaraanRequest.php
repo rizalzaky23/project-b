@@ -13,6 +13,7 @@ class UpdateKejadianKendaraanRequest extends FormRequest
         return [
             'tanggal'        => 'sometimes|date',
             'jenis_kejadian' => 'nullable|string|max:100',
+            'kontak_pihak_ketiga' => 'nullable|string|max:100',
             'lokasi'         => 'nullable|string|max:255',
             'status'         => 'nullable|string|in:progres,selesai',
             'foto_km'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',

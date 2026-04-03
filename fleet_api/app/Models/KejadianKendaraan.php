@@ -15,6 +15,7 @@ class KejadianKendaraan extends Model
         'kendaraan_id',
         'tanggal',
         'jenis_kejadian',
+        'kontak_pihak_ketiga',
         'lokasi',
         'status',
         'foto_km',

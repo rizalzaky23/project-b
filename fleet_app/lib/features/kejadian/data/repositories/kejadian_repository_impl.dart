@@ -20,10 +20,11 @@ class KejadianRepositoryImpl implements KejadianRepository {
   @override Future<KejadianEntity> getById(int id) async { try { return await _remote.getById(id); } on DioException catch (e) { throw ApiHelper.handleError(e); } }
 
   @override
-  Future<KejadianEntity> create({required int kendaraanId, required String tanggal, String? jenisKejadian, String? lokasi, String? deskripsi, String? status, XFile? fotoKm, XFile? foto1, XFile? foto2}) async {
+  Future<KejadianEntity> create({required int kendaraanId, required String tanggal, String? jenisKejadian, String? kontakPihakKetiga, String? lokasi, String? deskripsi, String? status, XFile? fotoKm, XFile? foto1, XFile? foto2}) async {
     try {
       final fields = <String,dynamic>{'kendaraan_id': kendaraanId.toString(), 'tanggal': tanggal};
       if (jenisKejadian != null) fields['jenis_kejadian'] = jenisKejadian;
+      if (kontakPihakKetiga != null) fields['kontak_pihak_ketiga'] = kontakPihakKetiga;
       if (lokasi != null) fields['lokasi'] = lokasi;
       if (deskripsi != null) fields['deskripsi'] = deskripsi;
       if (status != null) fields['status'] = status;
@@ -36,12 +37,13 @@ class KejadianRepositoryImpl implements KejadianRepository {
   }
 
   @override
-  Future<KejadianEntity> update({required int id, String? tanggal, String? jenisKejadian, String? lokasi, String? deskripsi, String? status, XFile? fotoKm, XFile? foto1, XFile? foto2, bool fotoKmDeleted = false, bool foto1Deleted = false, bool foto2Deleted = false}) async {
+  Future<KejadianEntity> update({required int id, String? tanggal, String? jenisKejadian, String? kontakPihakKetiga, String? lokasi, String? deskripsi, String? status, XFile? fotoKm, XFile? foto1, XFile? foto2, bool fotoKmDeleted = false, bool foto1Deleted = false, bool foto2Deleted = false}) async {
     try {
       final fields = <String,dynamic>{};
       if (tanggal != null) fields['tanggal'] = tanggal;
       // Always send these fields so server receives updates even if cleared
       fields['jenis_kejadian'] = jenisKejadian ?? '';
+      fields['kontak_pihak_ketiga'] = kontakPihakKetiga ?? '';
       fields['lokasi'] = lokasi ?? '';
       fields['deskripsi'] = deskripsi ?? '';
       if (status != null) fields['status'] = status;

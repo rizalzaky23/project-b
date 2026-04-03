@@ -25,6 +25,7 @@ class KendaraanEntity extends Equatable {
   final String? tanggalJual;
   final double? hargaJual;
   final String? createdAt;
+  final bool isRented;
 
   const KendaraanEntity({
     required this.id,
@@ -51,6 +52,7 @@ class KendaraanEntity extends Equatable {
     this.tanggalJual,
     this.hargaJual,
     this.createdAt,
+    required this.isRented,
   });
 
   @override

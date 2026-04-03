@@ -21,6 +21,11 @@ class KendaraanController extends Controller
     public function index(Request $request)
     {
         $query = Kendaraan::with('detail')
+            ->withExists(['penyewaan as is_rented' => function($q) {
+                $today = now()->toDateString();
+                $q->whereDate('tanggal_mulai', '<=', $today)
+                  ->whereDate('tanggal_selesai', '>=', $today);
+            }])
             ->when($request->search, fn($q, $s) =>
                 $q->where('kode_kendaraan', 'like', "%{$s}%")
                   ->orWhere('merk', 'like', "%{$s}%")
@@ -33,7 +38,13 @@ class KendaraanController extends Controller
             ->when($request->status, fn($q, $v) => $q->where('status', $v))
             ->latest();
 
-        return $this->paginatedResponse($query->paginate($request->per_page ?? 15));
+        $paginated = $query->paginate($request->per_page ?? 15);
+        $paginated->getCollection()->transform(function($kendaraan) {
+            $kendaraan->is_rented = (bool)$kendaraan->is_rented;
+            return $kendaraan;
+        });
+
+        return $this->paginatedResponse($paginated);
     }
 
     public function store(StoreKendaraanRequest $request)
@@ -60,6 +71,13 @@ class KendaraanController extends Controller
     public function show(Kendaraan $kendaraan)
     {
         $kendaraan->load(['detail', 'asuransi', 'kejadian', 'penyewaan']);
+        
+        $today = now()->toDateString();
+        $kendaraan->is_rented = (bool)$kendaraan->penyewaan()
+            ->whereDate('tanggal_mulai', '<=', $today)
+            ->whereDate('tanggal_selesai', '>=', $today)
+            ->exists();
+
         return $this->successResponse($kendaraan);
     }
 

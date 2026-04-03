@@ -188,6 +188,10 @@ class KejadianDetailScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _InfoRow(icon: Icons.category_outlined, label: 'Jenis Kejadian', value: item.jenisKejadian!),
         ],
+        if (item.jenisKejadian == 'Melibatkan Pihak Ketiga' && item.kontakPihakKetiga != null && item.kontakPihakKetiga!.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _InfoRow(icon: Icons.contact_phone_outlined, label: 'Kontak Pihak Ketiga', value: item.kontakPihakKetiga!),
+        ],
         if (item.lokasi != null && item.lokasi!.isNotEmpty) ...[
           const SizedBox(height: 12),
           _InfoRow(icon: Icons.location_on_outlined, label: 'Lokasi Kejadian', value: item.lokasi!),

@@ -70,7 +70,7 @@ class KejadianKendaraanController extends Controller
         $data = $request->validated();
 
         // Convert empty strings to null for nullable fields
-        foreach (['jenis_kejadian', 'lokasi', 'deskripsi'] as $field) {
+        foreach (['jenis_kejadian', 'kontak_pihak_ketiga', 'lokasi', 'deskripsi'] as $field) {
             if (array_key_exists($field, $data) && $data[$field] === '') {
                 $data[$field] = null;
             }

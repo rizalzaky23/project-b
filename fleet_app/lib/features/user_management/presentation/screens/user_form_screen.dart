@@ -200,7 +200,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
                 _label('Role'),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: _role,
+                  initialValue: _role,
                   decoration: _inputDeco('Pilih role',
                       icon: Icons.admin_panel_settings_outlined),
                   items: const [

@@ -1,10 +1,7 @@
-import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../core/theme/theme_notifier.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';

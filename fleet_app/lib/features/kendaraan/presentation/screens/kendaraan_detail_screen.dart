@@ -372,6 +372,34 @@ class _KendaraanDetailScreenState extends State<KendaraanDetailScreen> {
                   ),
                 ),
               ],
+              if (_kendaraan.isRented) ...[
+                const SizedBox(height: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE65100).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFE65100).withOpacity(0.3)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.timer_outlined,
+                          size: 14, color: Color(0xFFE65100)),
+                      SizedBox(width: 4),
+                      Text(
+                        'SEDANG DISEWA',
+                        style: TextStyle(
+                          color: Color(0xFFE65100),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 6),
               Text(
                 _kendaraan.noChasis,

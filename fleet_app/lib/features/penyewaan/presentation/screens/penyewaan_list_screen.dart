@@ -200,10 +200,13 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
                 if (_filterAktif != null) {
                   final mulai = DateTime.tryParse(item.tanggalMulai);
                   final selesai = DateTime.tryParse(item.tanggalSelesai);
-                  final isActive = mulai != null &&
-                      selesai != null &&
-                      now.isAfter(mulai) &&
-                      now.isBefore(selesai);
+                  final todayOnly = DateTime(now.year, now.month, now.day);
+                  final mulaiOnly = mulai != null ? DateTime(mulai.toLocal().year, mulai.toLocal().month, mulai.toLocal().day) : null;
+                  final selesaiOnly = selesai != null ? DateTime(selesai.toLocal().year, selesai.toLocal().month, selesai.toLocal().day) : null;
+                  final isActive = mulaiOnly != null &&
+                      selesaiOnly != null &&
+                      !todayOnly.isBefore(mulaiOnly) &&   // today >= mulai
+                      !todayOnly.isAfter(selesaiOnly);    // today <= selesai
                   passStatus = _filterAktif! ? isActive : !isActive;
                 }
 
@@ -235,10 +238,13 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
                   final item = filteredItems[i];
                   final selesai = DateTime.tryParse(item.tanggalSelesai);
                   final mulai = DateTime.tryParse(item.tanggalMulai);
-                  final isActive = mulai != null &&
-                      selesai != null &&
-                      now.isAfter(mulai) &&
-                      now.isBefore(selesai);
+                  final todayOnly = DateTime(now.year, now.month, now.day);
+                  final mulaiOnly = mulai != null ? DateTime(mulai.toLocal().year, mulai.toLocal().month, mulai.toLocal().day) : null;
+                  final selesaiOnly = selesai != null ? DateTime(selesai.toLocal().year, selesai.toLocal().month, selesai.toLocal().day) : null;
+                  final isActive = mulaiOnly != null &&
+                      selesaiOnly != null &&
+                      !todayOnly.isBefore(mulaiOnly) &&   // today >= mulai
+                      !todayOnly.isAfter(selesaiOnly);    // today <= selesai
                   final statusColor =
                       isActive ? AppTheme.secondary : AppTheme.textSecondary;
                   final gradColors = isActive

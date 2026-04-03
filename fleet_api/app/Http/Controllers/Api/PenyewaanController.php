@@ -24,8 +24,8 @@ class PenyewaanController extends Controller
             ->when($request->group !== null, fn($q) => $q->where('group', filter_var($request->group, FILTER_VALIDATE_BOOLEAN)))
             ->when($request->aktif, function ($q) {
                 $today = now()->toDateString();
-                $q->where('tanggal_mulai', '<=', $today)
-                  ->where('tanggal_selesai', '>=', $today);
+                $q->whereDate('tanggal_mulai', '<=', $today)
+                  ->whereDate('tanggal_selesai', '>=', $today);
             })
             ->when($request->tanggal_dari, fn($q, $v) => $q->whereDate('tanggal_mulai', '>=', $v))
             ->when($request->tanggal_sampai, fn($q, $v) => $q->whereDate('tanggal_selesai', '<=', $v))

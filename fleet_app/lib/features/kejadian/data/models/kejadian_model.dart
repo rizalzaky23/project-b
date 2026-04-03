@@ -4,7 +4,7 @@ import '../../domain/entities/kejadian_entity.dart';
 class KejadianModel extends KejadianEntity {
   const KejadianModel({
     required super.id, required super.kendaraanId, required super.tanggal,
-    super.jenisKejadian, super.lokasi, super.deskripsi, super.status, super.fotoKm, super.foto1, super.foto2, super.kendaraan,
+    super.jenisKejadian, super.kontakPihakKetiga, super.lokasi, super.deskripsi, super.status, super.fotoKm, super.foto1, super.foto2, super.kendaraan,
   });
 
   factory KejadianModel.fromJson(Map<String, dynamic> j) => KejadianModel(
@@ -12,6 +12,7 @@ class KejadianModel extends KejadianEntity {
     kendaraanId: int.tryParse(j['kendaraan_id']?.toString() ?? '0') ?? 0,
     tanggal: j['tanggal'] ?? '',
     jenisKejadian: j['jenis_kejadian'],
+    kontakPihakKetiga: j['kontak_pihak_ketiga'],
     lokasi: j['lokasi'],
     deskripsi: j['deskripsi'],
     status: j['status'],

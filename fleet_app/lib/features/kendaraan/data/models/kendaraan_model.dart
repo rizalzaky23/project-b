@@ -10,6 +10,7 @@ class KendaraanModel extends KendaraanEntity {
     super.jenisPembayaran, super.jenisKredit, super.tenor, super.fileKontrak,
     super.fotoDepan, super.fotoKiri, super.fotoKanan, super.fotoBelakang,
     super.status, super.tanggalJual, super.hargaJual, super.createdAt,
+    required super.isRented,
   });
 
   factory KendaraanModel.fromJson(Map<String, dynamic> json) {
@@ -40,6 +41,7 @@ class KendaraanModel extends KendaraanEntity {
       tanggalJual: json['tanggal_jual'],
       hargaJual: json['harga_jual'] != null ? double.tryParse(json['harga_jual'].toString()) : null,
       createdAt: json['created_at'],
+      isRented: json['is_rented'] == true || json['is_rented'] == 1 || json['is_rented'].toString() == '1',
     );
   }
 }

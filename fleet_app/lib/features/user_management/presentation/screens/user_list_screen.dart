@@ -131,7 +131,7 @@ class _UserListScreenState extends State<UserListScreen> {
                       style: TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
-                  Text('Tambah user baru dengan tombol di bawah.',
+                  const Text('Tambah user baru dengan tombol di bawah.',
                       style: TextStyle(
                           color: AppTheme.textSecondary, fontSize: 13)),
                 ],

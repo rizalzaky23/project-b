@@ -22,7 +22,7 @@ class KejadianFormScreen extends StatefulWidget {
 
 class _KejadianFormScreenState extends State<KejadianFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _kendaraanIdCtrl, _tanggalCtrl, _lokasiCtrl, _deskripsiCtrl;
+  late final TextEditingController _kendaraanIdCtrl, _tanggalCtrl, _lokasiCtrl, _deskripsiCtrl, _kontakCtrl;
   String? _jenisKejadian, _status;
   DateTime? _tanggal;
   XFile? _fotoKm, _foto1, _foto2;
@@ -38,11 +38,12 @@ class _KejadianFormScreenState extends State<KejadianFormScreen> {
     _tanggalCtrl = TextEditingController(text: e?.tanggal != null ? FormatHelper.date(e!.tanggal) : '');
     _lokasiCtrl = TextEditingController(text: e?.lokasi ?? '');
     _deskripsiCtrl = TextEditingController(text: e?.deskripsi ?? '');
+    _kontakCtrl = TextEditingController(text: e?.kontakPihakKetiga ?? '');
     _jenisKejadian = e?.jenisKejadian;
     _status = e?.status ?? 'progres';
   }
 
-  @override void dispose() { _kendaraanIdCtrl.dispose(); _tanggalCtrl.dispose(); _lokasiCtrl.dispose(); _deskripsiCtrl.dispose(); super.dispose(); }
+  @override void dispose() { _kendaraanIdCtrl.dispose(); _tanggalCtrl.dispose(); _lokasiCtrl.dispose(); _deskripsiCtrl.dispose(); _kontakCtrl.dispose(); super.dispose(); }
 
   Future<void> _pickDate() async {
     final dt = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime.now());
@@ -56,10 +57,11 @@ class _KejadianFormScreenState extends State<KejadianFormScreen> {
         : widget.existing?.tanggal ?? '';
     final lokasi = _lokasiCtrl.text.trim().isEmpty ? null : _lokasiCtrl.text.trim();
     final deskripsi = _deskripsiCtrl.text.trim().isEmpty ? null : _deskripsiCtrl.text.trim();
+    final kontak = _jenisKejadian == 'Melibatkan Pihak Ketiga' && _kontakCtrl.text.trim().isNotEmpty ? _kontakCtrl.text.trim() : null;
     if (_isEdit) {
-      context.read<KejadianBloc>().add(KejadianUpdateRequested(id: widget.existing!.id, tanggal: tgl, jenisKejadian: _jenisKejadian, lokasi: lokasi, deskripsi: deskripsi, status: _status, fotoKm: _fotoKm, foto1: _foto1, foto2: _foto2, fotoKmDeleted: _fotoKmDel, foto1Deleted: _foto1Del, foto2Deleted: _foto2Del));
+      context.read<KejadianBloc>().add(KejadianUpdateRequested(id: widget.existing!.id, tanggal: tgl, jenisKejadian: _jenisKejadian, kontakPihakKetiga: kontak, lokasi: lokasi, deskripsi: deskripsi, status: _status, fotoKm: _fotoKm, foto1: _foto1, foto2: _foto2, fotoKmDeleted: _fotoKmDel, foto1Deleted: _foto1Del, foto2Deleted: _foto2Del));
     } else {
-      context.read<KejadianBloc>().add(KejadianCreateRequested(kendaraanId: int.parse(_kendaraanIdCtrl.text), tanggal: tgl, jenisKejadian: _jenisKejadian, lokasi: lokasi, deskripsi: deskripsi, status: _status, fotoKm: _fotoKm, foto1: _foto1, foto2: _foto2));
+      context.read<KejadianBloc>().add(KejadianCreateRequested(kendaraanId: int.parse(_kendaraanIdCtrl.text), tanggal: tgl, jenisKejadian: _jenisKejadian, kontakPihakKetiga: kontak, lokasi: lokasi, deskripsi: deskripsi, status: _status, fotoKm: _fotoKm, foto1: _foto1, foto2: _foto2));
     }
   }
 
@@ -91,7 +93,7 @@ class _KejadianFormScreenState extends State<KejadianFormScreen> {
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).dividerColor)),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.primary)),
                   ),
-                  value: _jenisKejadian,
+                  initialValue: _jenisKejadian,
                   dropdownColor: Theme.of(context).colorScheme.surface,
                   items: const [
                     DropdownMenuItem(value: null, child: Text('Belum Dipilih')),
@@ -100,6 +102,10 @@ class _KejadianFormScreenState extends State<KejadianFormScreen> {
                   ],
                   onChanged: (v) => setState(() => _jenisKejadian = v),
                 ),
+                if (_jenisKejadian == 'Melibatkan Pihak Ketiga') ...[
+                  const SizedBox(height: 16),
+                  AppTextField(controller: _kontakCtrl, label: 'Kontak Pihak Ketiga', prefixIcon: Icons.contact_phone_outlined),
+                ],
                 const SizedBox(height: 16),
                 AppTextField(controller: _lokasiCtrl, label: 'Lokasi Kejadian', prefixIcon: Icons.location_on_outlined),
                 const SizedBox(height: 16),
@@ -115,7 +121,7 @@ class _KejadianFormScreenState extends State<KejadianFormScreen> {
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).dividerColor)),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.primary)),
                   ),
-                  value: _status,
+                  initialValue: _status,
                   dropdownColor: Theme.of(context).colorScheme.surface,
                   items: const [
                     DropdownMenuItem(value: 'progres', child: Text('Progres')),

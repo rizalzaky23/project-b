@@ -23,4 +23,26 @@ class StorePenyewaanRequest extends FormRequest
             'surat_perjanjian'  => 'nullable|file|mimes:pdf|max:10240',
         ];
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $kendaraanId = $this->input('kendaraan_id');
+            $mulai = $this->input('tanggal_mulai');
+            $selesai = $this->input('tanggal_selesai');
+
+            if ($kendaraanId && $mulai && $selesai) {
+                $exists = \App\Models\Penyewaan::where('kendaraan_id', $kendaraanId)
+                    ->where(function ($q) use ($mulai, $selesai) {
+                        $q->where('tanggal_mulai', '<=', $selesai)
+                          ->where('tanggal_selesai', '>=', $mulai);
+                    })
+                    ->exists();
+
+                if ($exists) {
+                    $validator->errors()->add('tanggal_mulai', 'Mobil masih dalam masa sewa pada periode tersebut.');
+                }
+            }
+        });
+    }
 }

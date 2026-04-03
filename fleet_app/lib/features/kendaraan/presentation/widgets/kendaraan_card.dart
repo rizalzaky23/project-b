@@ -5,6 +5,7 @@ import '../../../../core/theme/dark_theme.dart';
 import '../../../../shared/utils/format_helper.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/kendaraan_entity.dart';
+
 class KendaraanCard extends StatefulWidget {
   final KendaraanEntity kendaraan;
   final VoidCallback onTap;
@@ -139,42 +140,86 @@ class _KendaraanCardState extends State<KendaraanCard>
         Positioned(
           bottom: 8,
           right: 8,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-            decoration: BoxDecoration(
-              color: _isSold
-                  ? AppTheme.error.withOpacity(0.92)
-                  : AppTheme.success.withOpacity(0.92),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: (_isSold ? AppTheme.error : AppTheme.success)
-                      .withOpacity(0.45),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _isSold ? Icons.sell_rounded : Icons.check_circle_rounded,
-                  color: Colors.white,
-                  size: 11,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _isSold ? 'Terjual' : 'Tersedia',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (widget.kendaraan.isRented) ...[
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE65100)
+                        .withOpacity(0.92), // Orange for Rented
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFE65100).withOpacity(0.45),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.timer_outlined,
+                        color: Colors.white,
+                        size: 11,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'Sedang Disewa',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 4),
               ],
-            ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _isSold
+                      ? AppTheme.error.withOpacity(0.92)
+                      : AppTheme.success.withOpacity(0.92),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (_isSold ? AppTheme.error : AppTheme.success)
+                          .withOpacity(0.45),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _isSold ? Icons.sell_rounded : Icons.check_circle_rounded,
+                      color: Colors.white,
+                      size: 11,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _isSold ? 'Terjual' : 'Tersedia',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
 
@@ -317,45 +362,44 @@ class _KendaraanCardState extends State<KendaraanCard>
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Builder(
-                builder: (context) {
-                  final authState = context.read<AuthBloc>().state;
-                  final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
-                  
-                  if (!isAdmin) return const SizedBox.shrink();
-                  
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      GestureDetector(
-                        onTap: widget.onEdit,
-                        child: Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primary.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Icon(Icons.edit_outlined,
-                              size: 14, color: AppTheme.primary),
+              Builder(builder: (context) {
+                final authState = context.read<AuthBloc>().state;
+                final isAdmin = authState is AuthAuthenticated &&
+                    authState.user.role == 'admin';
+
+                if (!isAdmin) return const SizedBox.shrink();
+
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: widget.onEdit,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(6),
                         ),
+                        child: const Icon(Icons.edit_outlined,
+                            size: 14, color: AppTheme.primary),
                       ),
-                      const SizedBox(width: 6),
-                      GestureDetector(
-                        onTap: widget.onDelete,
-                        child: Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: AppTheme.error.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Icon(Icons.delete_outline,
-                              size: 14, color: AppTheme.error),
+                    ),
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: widget.onDelete,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: AppTheme.error.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(6),
                         ),
+                        child: const Icon(Icons.delete_outline,
+                            size: 14, color: AppTheme.error),
                       ),
-                    ],
-                  );
-                }
-              ),
+                    ),
+                  ],
+                );
+              }),
             ],
           ),
           const SizedBox(height: 4),

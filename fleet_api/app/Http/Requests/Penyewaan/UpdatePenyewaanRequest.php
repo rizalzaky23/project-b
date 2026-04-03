@@ -23,4 +23,33 @@ class UpdatePenyewaanRequest extends FormRequest
             'delete_surat_perjanjian'=> 'nullable|in:0,1',
         ];
     }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $penyewaan = $this->route('penyewaan');
+            if (!$penyewaan) return;
+            
+            // If route model binding is working, $penyewaan is a model. If not, it's an ID.
+            $id = $penyewaan instanceof \App\Models\Penyewaan ? $penyewaan->id : $penyewaan;
+            $kendaraanId = $penyewaan instanceof \App\Models\Penyewaan ? $penyewaan->kendaraan_id : \App\Models\Penyewaan::where('id', $id)->value('kendaraan_id');
+
+            $mulai = $this->input('tanggal_mulai') ?? ($penyewaan instanceof \App\Models\Penyewaan ? \Carbon\Carbon::parse($penyewaan->tanggal_mulai)->toDateString() : \App\Models\Penyewaan::where('id', $id)->value('tanggal_mulai'));
+            $selesai = $this->input('tanggal_selesai') ?? ($penyewaan instanceof \App\Models\Penyewaan ? \Carbon\Carbon::parse($penyewaan->tanggal_selesai)->toDateString() : \App\Models\Penyewaan::where('id', $id)->value('tanggal_selesai'));
+
+            if ($kendaraanId && $mulai && $selesai) {
+                $exists = \App\Models\Penyewaan::where('kendaraan_id', $kendaraanId)
+                    ->where('id', '!=', $id)
+                    ->where(function ($q) use ($mulai, $selesai) {
+                        $q->where('tanggal_mulai', '<=', $selesai)
+                          ->where('tanggal_selesai', '>=', $mulai);
+                    })
+                    ->exists();
+
+                if ($exists) {
+                    $validator->errors()->add('tanggal_mulai', 'Mobil masih dalam masa sewa pada periode tersebut.');
+                }
+            }
+        });
+    }
 }
