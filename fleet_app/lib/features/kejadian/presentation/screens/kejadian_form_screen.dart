@@ -22,7 +22,8 @@ class KejadianFormScreen extends StatefulWidget {
 
 class _KejadianFormScreenState extends State<KejadianFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _kendaraanIdCtrl, _tanggalCtrl, _deskripsiCtrl;
+  late final TextEditingController _kendaraanIdCtrl, _tanggalCtrl, _lokasiCtrl, _deskripsiCtrl;
+  String? _jenisKejadian, _status;
   DateTime? _tanggal;
   XFile? _fotoKm, _foto1, _foto2;
   bool _fotoKmDel=false, _foto1Del=false, _foto2Del=false;
@@ -35,10 +36,13 @@ class _KejadianFormScreenState extends State<KejadianFormScreen> {
     final e = widget.existing;
     _kendaraanIdCtrl = TextEditingController(text: (widget.kendaraanId ?? e?.kendaraanId)?.toString() ?? '');
     _tanggalCtrl = TextEditingController(text: e?.tanggal != null ? FormatHelper.date(e!.tanggal) : '');
+    _lokasiCtrl = TextEditingController(text: e?.lokasi ?? '');
     _deskripsiCtrl = TextEditingController(text: e?.deskripsi ?? '');
+    _jenisKejadian = e?.jenisKejadian;
+    _status = e?.status ?? 'progres';
   }
 
-  @override void dispose() { _kendaraanIdCtrl.dispose(); _tanggalCtrl.dispose(); _deskripsiCtrl.dispose(); super.dispose(); }
+  @override void dispose() { _kendaraanIdCtrl.dispose(); _tanggalCtrl.dispose(); _lokasiCtrl.dispose(); _deskripsiCtrl.dispose(); super.dispose(); }
 
   Future<void> _pickDate() async {
     final dt = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime.now());
@@ -47,11 +51,15 @@ class _KejadianFormScreenState extends State<KejadianFormScreen> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    final tgl = _tanggal != null ? FormatHelper.apiDate(_tanggal!) : widget.existing?.tanggal ?? '';
+    final tgl = _tanggal != null 
+        ? FormatHelper.apiDate(_tanggal!) 
+        : widget.existing?.tanggal ?? '';
+    final lokasi = _lokasiCtrl.text.trim().isEmpty ? null : _lokasiCtrl.text.trim();
+    final deskripsi = _deskripsiCtrl.text.trim().isEmpty ? null : _deskripsiCtrl.text.trim();
     if (_isEdit) {
-      context.read<KejadianBloc>().add(KejadianUpdateRequested(id: widget.existing!.id, tanggal: tgl, deskripsi: _deskripsiCtrl.text.isEmpty ? null : _deskripsiCtrl.text, fotoKm: _fotoKm, foto1: _foto1, foto2: _foto2, fotoKmDeleted: _fotoKmDel, foto1Deleted: _foto1Del, foto2Deleted: _foto2Del));
+      context.read<KejadianBloc>().add(KejadianUpdateRequested(id: widget.existing!.id, tanggal: tgl, jenisKejadian: _jenisKejadian, lokasi: lokasi, deskripsi: deskripsi, status: _status, fotoKm: _fotoKm, foto1: _foto1, foto2: _foto2, fotoKmDeleted: _fotoKmDel, foto1Deleted: _foto1Del, foto2Deleted: _foto2Del));
     } else {
-      context.read<KejadianBloc>().add(KejadianCreateRequested(kendaraanId: int.parse(_kendaraanIdCtrl.text), tanggal: tgl, deskripsi: _deskripsiCtrl.text.isEmpty ? null : _deskripsiCtrl.text, fotoKm: _fotoKm, foto1: _foto1, foto2: _foto2));
+      context.read<KejadianBloc>().add(KejadianCreateRequested(kendaraanId: int.parse(_kendaraanIdCtrl.text), tanggal: tgl, jenisKejadian: _jenisKejadian, lokasi: lokasi, deskripsi: deskripsi, status: _status, fotoKm: _fotoKm, foto1: _foto1, foto2: _foto2));
     }
   }
 
@@ -73,7 +81,48 @@ class _KejadianFormScreenState extends State<KejadianFormScreen> {
                 if (!_isEdit && widget.kendaraanId == null) ...[AppTextField(controller: _kendaraanIdCtrl, label: 'ID Kendaraan', keyboardType: TextInputType.number, prefixIcon: Icons.tag, validator: (v) => (v == null || v.isEmpty) ? 'ID Kendaraan wajib diisi' : null), const SizedBox(height: 16)],
                 AppTextField(controller: _tanggalCtrl, label: 'Tanggal Kejadian', prefixIcon: Icons.calendar_today_outlined, readOnly: true, onTap: _pickDate, validator: (v) => (v == null || v.isEmpty) ? 'Tanggal wajib diisi' : null),
                 const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Jenis Kejadian',
+                    prefixIcon: const Icon(Icons.category_outlined, color: AppTheme.textSecondary),
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surfaceBright,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).dividerColor)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).dividerColor)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.primary)),
+                  ),
+                  value: _jenisKejadian,
+                  dropdownColor: Theme.of(context).colorScheme.surface,
+                  items: const [
+                    DropdownMenuItem(value: null, child: Text('Belum Dipilih')),
+                    DropdownMenuItem(value: 'Kecelakaan Tunggal', child: Text('Kecelakaan Tunggal')),
+                    DropdownMenuItem(value: 'Melibatkan Pihak Ketiga', child: Text('Melibatkan Pihak Ketiga')),
+                  ],
+                  onChanged: (v) => setState(() => _jenisKejadian = v),
+                ),
+                const SizedBox(height: 16),
+                AppTextField(controller: _lokasiCtrl, label: 'Lokasi Kejadian', prefixIcon: Icons.location_on_outlined),
+                const SizedBox(height: 16),
                 AppTextField(controller: _deskripsiCtrl, label: 'Deskripsi (Opsional)', prefixIcon: Icons.description_outlined, maxLines: 4),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Status Kejadian',
+                    prefixIcon: const Icon(Icons.info_outline, color: AppTheme.textSecondary),
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surfaceBright,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).dividerColor)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).dividerColor)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.primary)),
+                  ),
+                  value: _status,
+                  dropdownColor: Theme.of(context).colorScheme.surface,
+                  items: const [
+                    DropdownMenuItem(value: 'progres', child: Text('Progres')),
+                    DropdownMenuItem(value: 'selesai', child: Text('Selesai')),
+                  ],
+                  onChanged: (v) => setState(() => _status = v),
+                ),
                 const SizedBox(height: 24),
                 const Text('Foto', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 15)),
                 const SizedBox(height: 12),

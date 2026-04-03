@@ -30,11 +30,15 @@ class _DetailKendaraanFormScreenState extends State<DetailKendaraanFormScreen> {
   late final TextEditingController _pemilikFiskalController;
   late final TextEditingController _kendaraanIdController;
 
-  // STNK berlaku
+  // STNK & KIR berlaku
   late final TextEditingController _stnkBerlakuMulaiController;
   late final TextEditingController _stnkBerlakuAkhirController;
+  late final TextEditingController _kirBerlakuMulaiController;
+  late final TextEditingController _kirBerlakuAkhirController;
   DateTime? _stnkBerlakuMulaiDate;
   DateTime? _stnkBerlakuAkhirDate;
+  DateTime? _kirBerlakuMulaiDate;
+  DateTime? _kirBerlakuAkhirDate;
 
   XFile? _fotoStnk, _fotoBpkb, _fotoNomor, _fotoKm;
   bool _fotoStnkDel = false, _fotoBpkbDel = false, _fotoNomorDel = false, _fotoKmDel = false;
@@ -59,6 +63,12 @@ class _DetailKendaraanFormScreenState extends State<DetailKendaraanFormScreen> {
     _stnkBerlakuAkhirController = TextEditingController(
       text: e?.stnkBerlakuAkhir != null ? FormatHelper.date(e!.stnkBerlakuAkhir) : '',
     );
+    _kirBerlakuMulaiController = TextEditingController(
+      text: e?.kirBerlakuMulai != null ? FormatHelper.date(e!.kirBerlakuMulai) : '',
+    );
+    _kirBerlakuAkhirController = TextEditingController(
+      text: e?.kirBerlakuAkhir != null ? FormatHelper.date(e!.kirBerlakuAkhir) : '',
+    );
   }
 
   @override
@@ -70,6 +80,8 @@ class _DetailKendaraanFormScreenState extends State<DetailKendaraanFormScreen> {
     _kendaraanIdController.dispose();
     _stnkBerlakuMulaiController.dispose();
     _stnkBerlakuAkhirController.dispose();
+    _kirBerlakuMulaiController.dispose();
+    _kirBerlakuAkhirController.dispose();
     super.dispose();
   }
 
@@ -103,6 +115,36 @@ class _DetailKendaraanFormScreenState extends State<DetailKendaraanFormScreen> {
     }
   }
 
+  Future<void> _pickKirMulai() async {
+    final dt = await showDatePicker(
+      context: context,
+      initialDate: _kirBerlakuMulaiDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (dt != null) {
+      setState(() {
+        _kirBerlakuMulaiDate = dt;
+        _kirBerlakuMulaiController.text = FormatHelper.date(FormatHelper.apiDate(dt));
+      });
+    }
+  }
+
+  Future<void> _pickKirAkhir() async {
+    final dt = await showDatePicker(
+      context: context,
+      initialDate: _kirBerlakuAkhirDate ?? _kirBerlakuMulaiDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (dt != null) {
+      setState(() {
+        _kirBerlakuAkhirDate = dt;
+        _kirBerlakuAkhirController.text = FormatHelper.date(FormatHelper.apiDate(dt));
+      });
+    }
+  }
+
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     final bloc = context.read<DetailKendaraanBloc>();
@@ -115,6 +157,12 @@ class _DetailKendaraanFormScreenState extends State<DetailKendaraanFormScreen> {
     final stnkAkhir = _stnkBerlakuAkhirDate != null
         ? FormatHelper.apiDate(_stnkBerlakuAkhirDate!)
         : widget.existing?.stnkBerlakuAkhir;
+    final kirMulai = _kirBerlakuMulaiDate != null
+        ? FormatHelper.apiDate(_kirBerlakuMulaiDate!)
+        : widget.existing?.kirBerlakuMulai;
+    final kirAkhir = _kirBerlakuAkhirDate != null
+        ? FormatHelper.apiDate(_kirBerlakuAkhirDate!)
+        : widget.existing?.kirBerlakuAkhir;
 
     if (_isEdit) {
       bloc.add(DetailKendaraanUpdateRequested(
@@ -126,6 +174,8 @@ class _DetailKendaraanFormScreenState extends State<DetailKendaraanFormScreen> {
         fotoStnk: _fotoStnk,
         stnkBerlakuMulai: stnkMulai,
         stnkBerlakuAkhir: stnkAkhir,
+        kirBerlakuMulai: kirMulai,
+        kirBerlakuAkhir: kirAkhir,
         fotoBpkb: _fotoBpkb,
         fotoNomor: _fotoNomor,
         fotoKm: _fotoKm,
@@ -148,6 +198,8 @@ class _DetailKendaraanFormScreenState extends State<DetailKendaraanFormScreen> {
         fotoStnk: _fotoStnk,
         stnkBerlakuMulai: stnkMulai,
         stnkBerlakuAkhir: stnkAkhir,
+        kirBerlakuMulai: kirMulai,
+        kirBerlakuAkhir: kirAkhir,
         fotoBpkb: _fotoBpkb,
         fotoNomor: _fotoNomor,
         fotoKm: _fotoKm,
@@ -300,6 +352,14 @@ class _DetailKendaraanFormScreenState extends State<DetailKendaraanFormScreen> {
                         _lembarKir = r.hasPicked ? r.file : null;
                         _lembarKirDel = r.isDeleted;
                       }),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: AppTextField(controller: _kirBerlakuMulaiController, label: 'KIR Mulai', prefixIcon: Icons.calendar_today_outlined, readOnly: true, onTap: _pickKirMulai)),
+                        const SizedBox(width: 8),
+                        Expanded(child: AppTextField(controller: _kirBerlakuAkhirController, label: 'KIR Akhir', prefixIcon: Icons.event_outlined, readOnly: true, onTap: _pickKirAkhir)),
+                      ],
                     ),
                     const SizedBox(height: 32),
 

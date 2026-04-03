@@ -19,6 +19,10 @@ class AsuransiListScreen extends StatefulWidget {
 
 class _AsuransiListScreenState extends State<AsuransiListScreen> {
   final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  /// 'semua' | 'aktif' | 'tidak_aktif'
+  String _filterStatus = 'semua';
 
   @override
   void initState() {
@@ -35,6 +39,7 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -80,21 +85,59 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
           },
         ),
       ),
-      body: BlocListener<AsuransiBloc, AsuransiState>(
-        listener: (ctx, state) {
-          if (state is AsuransiActionSuccess) {
-            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppTheme.success));
-            ctx.read<AsuransiBloc>().add(
-                AsuransiLoadRequested(kendaraanId: widget.kendaraanId));
-          } else if (state is AsuransiActionError) {
-            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                content: Text(state.failure.message),
-                backgroundColor: AppTheme.error));
-          }
-        },
-        child: BlocBuilder<AsuransiBloc, AsuransiState>(
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            color: Theme.of(context).colorScheme.surface,
+            child: TextField(
+              controller: _searchController,
+              onChanged: (val) => setState(() => _searchQuery = val),
+              decoration: InputDecoration(
+                hintText: 'Cari no polis / asuransi...',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
+                ),
+              ),
+            ),
+          ),
+          _buildFilterBar(),
+          Expanded(
+            child: BlocListener<AsuransiBloc, AsuransiState>(
+              listener: (ctx, state) {
+                if (state is AsuransiActionSuccess) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: AppTheme.success));
+                  ctx.read<AsuransiBloc>().add(
+                      AsuransiLoadRequested(kendaraanId: widget.kendaraanId));
+                } else if (state is AsuransiActionError) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                      content: Text(state.failure.message),
+                      backgroundColor: AppTheme.error));
+                }
+              },
+              child: BlocBuilder<AsuransiBloc, AsuransiState>(
           builder: (ctx, state) {
             if (state is AsuransiLoading) return const AppLoading();
             if (state is AsuransiError) {
@@ -105,19 +148,46 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
                       AsuransiLoadRequested(kendaraanId: widget.kendaraanId)));
             }
             if (state is AsuransiLoaded) {
-              if (state.items.isEmpty) {
-                return const EmptyState(
-                    message: 'Belum ada data asuransi',
+              // ── client-side filter by status & search ─────────────────
+              final now = DateTime.now();
+              final filtered = state.items.where((item) {
+                // Filter status
+                final akhir = DateTime.tryParse(item.tanggalAkhir);
+                final isActive = akhir != null && akhir.isAfter(now);
+                bool passStatus = true;
+                if (_filterStatus == 'aktif') passStatus = isActive;
+                if (_filterStatus == 'tidak_aktif') passStatus = !isActive;
+
+                // Filter search
+                bool passSearch = true;
+                if (_searchQuery.isNotEmpty) {
+                  final q = _searchQuery.toLowerCase();
+                  final plat = (item.kendaraan?['kode_kendaraan'] as String?)?.toLowerCase() ?? '';
+                  passSearch = item.noPolis.toLowerCase().contains(q) ||
+                      item.perusahaanAsuransi.toLowerCase().contains(q) ||
+                      plat.contains(q);
+                }
+
+                return passStatus && passSearch;
+              }).toList();
+              // ─────────────────────────────────────────────────────────
+
+              if (filtered.isEmpty) {
+                return EmptyState(
+                    message: _filterStatus == 'semua'
+                        ? 'Belum ada data asuransi'
+                        : _filterStatus == 'aktif'
+                            ? 'Tidak ada asuransi yang aktif'
+                            : 'Tidak ada asuransi yang tidak aktif',
                     icon: Icons.health_and_safety_outlined);
               }
               return ListView.separated(
                 controller: _scrollController,
                 padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 80),
-                itemCount: state.items.length,
+                itemCount: filtered.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (_, i) {
-                  final item = state.items[i];
-                  final now = DateTime.now();
+                  final item = filtered[i];
                   final akhir = DateTime.tryParse(item.tanggalAkhir);
                   final isActive = akhir != null && akhir.isAfter(now);
                   final statusColor = isActive ? AppTheme.success : AppTheme.textSecondary;
@@ -280,6 +350,9 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
             return const SizedBox();
           },
         ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: Builder(
         builder: (context) {
@@ -299,6 +372,92 @@ class _AsuransiListScreenState extends State<AsuransiListScreen> {
         },
       ),
     ),
+    );
+  }
+
+  // ── Filter chip bar ───────────────────────────────────────────────────────
+  Widget _buildFilterBar() {
+    const filters = [
+      ('semua', 'Semua', Icons.list_alt_rounded),
+      ('aktif', 'Aktif', Icons.check_circle_outline_rounded),
+      ('tidak_aktif', 'Tidak Aktif', Icons.cancel_outlined),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: AppTheme.textSecondary.withOpacity(0.12),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: filters.map((f) {
+          final (value, label, icon) = f;
+          final isSelected = _filterStatus == value;
+
+          Color chipColor;
+          if (value == 'aktif') {
+            chipColor = AppTheme.success;
+          } else if (value == 'tidak_aktif') {
+            chipColor = AppTheme.error;
+          } else {
+            chipColor = AppTheme.primary;
+          }
+
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                child: GestureDetector(
+                  onTap: () => setState(() => _filterStatus = value),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? chipColor.withOpacity(0.15)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected
+                            ? chipColor.withOpacity(0.6)
+                            : AppTheme.textSecondary.withOpacity(0.2),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          icon,
+                          size: 14,
+                          color: isSelected ? chipColor : AppTheme.textSecondary,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: isSelected ? chipColor : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }

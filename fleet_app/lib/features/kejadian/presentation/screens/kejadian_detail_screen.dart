@@ -12,7 +12,7 @@ class KejadianDetailScreen extends StatelessWidget {
   static const _color = AppTheme.warning;
   static const _color2 = Color(0xFFFFB74D);
 
-  List<String?> get _photos => [item.fotoKm, item.foto1, item.foto2]
+  List<String?> _photos(KejadianEntity e) => [e.fotoKm, e.foto1, e.foto2]
       .where((p) => p != null && p.isNotEmpty).toList();
 
   @override
@@ -39,7 +39,13 @@ class KejadianDetailScreen extends StatelessWidget {
               decoration: BoxDecoration(color: AppTheme.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
               child: const Icon(Icons.edit_outlined, color: AppTheme.primary, size: 18),
             ),
-            onPressed: () => context.push('/kejadian/${item.id}/edit', extra: item),
+            onPressed: () async {
+              await context.push('/kejadian/${item.id}/edit', extra: item);
+              // After edit, replace with a fresh fetch so updated data shows
+              if (context.mounted) {
+                context.replace('/kejadian/${item.id}');
+              }
+            },
           ),
           const SizedBox(width: 8),
         ],
@@ -78,7 +84,7 @@ class KejadianDetailScreen extends StatelessWidget {
   }
 
   Widget _buildPhotoPanel(BuildContext context, {required bool fill}) {
-    final photos = _photos;
+    final photos = _photos(item);
     if (fill) {
       return Container(
         height: double.infinity, color: Theme.of(context).colorScheme.surface,
@@ -126,12 +132,16 @@ class KejadianDetailScreen extends StatelessWidget {
         Text('ID #${item.id}',
             style: const TextStyle(color: AppTheme.primary, fontSize: 13, fontWeight: FontWeight.w500)),
       ])),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(color: _color.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(20), border: Border.all(color: _color.withOpacity(0.3))),
-        child: const Text('Kejadian', style: TextStyle(color: _color, fontWeight: FontWeight.w700, fontSize: 12)),
-      ),
+      if (item.status != null && item.status!.isNotEmpty)
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: item.status == 'selesai' ? AppTheme.success.withOpacity(0.15) : AppTheme.primary.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: item.status == 'selesai' ? AppTheme.success.withOpacity(0.3) : AppTheme.primary.withOpacity(0.3))),
+          child: Text(item.status == 'selesai' ? 'SELESAI' : 'PROGRES',
+            style: TextStyle(color: item.status == 'selesai' ? AppTheme.success : AppTheme.primary, fontWeight: FontWeight.w800, fontSize: 12)),
+        ),
     ]);
   }
 
@@ -164,7 +174,24 @@ class KejadianDetailScreen extends StatelessWidget {
         border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [BoxShadow(color: _color.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))]),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const _SectionHeader(icon: Icons.warning_amber_outlined, label: 'Detail Kejadian', color: _color),
+        const _SectionHeader(icon: Icons.warning_amber_outlined, label: 'Informasi Kejadian', color: _color),
+        const SizedBox(height: 14),
+        // -- Status --
+        _InfoRow(
+          icon: item.status == 'selesai' ? Icons.check_circle_outline : Icons.pending_actions_outlined,
+          label: 'Status',
+          value: item.status == 'selesai' ? 'Selesai' : (item.status == 'progres' ? 'Progres' : '-'),
+          valueColor: item.status == 'selesai' ? AppTheme.success : (item.status == 'progres' ? AppTheme.primary : null),
+          bold: true,
+        ),
+        if (item.jenisKejadian != null && item.jenisKejadian!.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _InfoRow(icon: Icons.category_outlined, label: 'Jenis Kejadian', value: item.jenisKejadian!),
+        ],
+        if (item.lokasi != null && item.lokasi!.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _InfoRow(icon: Icons.location_on_outlined, label: 'Lokasi Kejadian', value: item.lokasi!),
+        ],
         if (item.deskripsi != null && item.deskripsi!.isNotEmpty) ...[
           const SizedBox(height: 14),
           const Row(children: [
@@ -192,6 +219,32 @@ class KejadianDetailScreen extends StatelessWidget {
 }
 
 // ─── Shared widgets ────────────────────────────────────────────────────────────
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool bold;
+  const _InfoRow({required this.icon, required this.label, required this.value, this.valueColor, this.bold = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Icon(icon, size: 14, color: AppTheme.textSecondary),
+      const SizedBox(width: 6),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+        const SizedBox(height: 2),
+        Text(value, style: TextStyle(
+          fontSize: 14,
+          fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
+          color: valueColor,
+        )),
+      ])),
+    ]);
+  }
+}
 
 class _SectionHeader extends StatelessWidget {
   final IconData icon; final String label; final Color color;

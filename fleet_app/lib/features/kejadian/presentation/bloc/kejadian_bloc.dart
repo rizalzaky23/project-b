@@ -9,18 +9,21 @@ import '../../../../shared/utils/pagination_meta.dart';
 abstract class KejadianEvent extends Equatable { @override List<Object?> get props => []; }
 class KejadianLoadRequested extends KejadianEvent { final int? kendaraanId; final String? search; KejadianLoadRequested({this.kendaraanId, this.search}); @override List<Object?> get props => [kendaraanId, search]; }
 class KejadianLoadMoreRequested extends KejadianEvent {}
-class KejadianCreateRequested extends KejadianEvent { final int kendaraanId; final String tanggal; final String? deskripsi; final XFile? fotoKm, foto1, foto2; KejadianCreateRequested({required this.kendaraanId, required this.tanggal, this.deskripsi, this.fotoKm, this.foto1, this.foto2}); @override List<Object?> get props => [kendaraanId, tanggal]; }
+class KejadianCreateRequested extends KejadianEvent { final int kendaraanId; final String tanggal; final String? jenisKejadian; final String? lokasi; final String? deskripsi; final String? status; final XFile? fotoKm, foto1, foto2; KejadianCreateRequested({required this.kendaraanId, required this.tanggal, this.jenisKejadian, this.lokasi, this.deskripsi, this.status, this.fotoKm, this.foto1, this.foto2}); @override List<Object?> get props => [kendaraanId, tanggal]; }
 
 class KejadianUpdateRequested extends KejadianEvent {
   final int id;
-  final String? tanggal, deskripsi;
+  final String? tanggal, jenisKejadian, lokasi, deskripsi, status;
   final XFile? fotoKm, foto1, foto2;
   final bool fotoKmDeleted, foto1Deleted, foto2Deleted;
 
   KejadianUpdateRequested({
     required this.id,
     this.tanggal,
+    this.jenisKejadian,
+    this.lokasi,
     this.deskripsi,
+    this.status,
     this.fotoKm,
     this.foto1,
     this.foto2,
@@ -74,7 +77,7 @@ class KejadianBloc extends Bloc<KejadianEvent, KejadianState> {
 
   Future<void> _onCreate(KejadianCreateRequested e, Emitter<KejadianState> emit) async {
     emit(KejadianActionLoading());
-    try { await _repo.create(kendaraanId: e.kendaraanId, tanggal: e.tanggal, deskripsi: e.deskripsi, fotoKm: e.fotoKm, foto1: e.foto1, foto2: e.foto2); emit(KejadianActionSuccess('Kejadian berhasil ditambahkan')); }
+    try { await _repo.create(kendaraanId: e.kendaraanId, tanggal: e.tanggal, jenisKejadian: e.jenisKejadian, lokasi: e.lokasi, deskripsi: e.deskripsi, status: e.status, fotoKm: e.fotoKm, foto1: e.foto1, foto2: e.foto2); emit(KejadianActionSuccess('Kejadian berhasil ditambahkan')); }
     catch (err) { emit(KejadianActionError(err is Failure ? err : ServerFailure(err.toString()))); }
   }
 
@@ -84,7 +87,10 @@ class KejadianBloc extends Bloc<KejadianEvent, KejadianState> {
       await _repo.update(
         id: e.id,
         tanggal: e.tanggal,
+        jenisKejadian: e.jenisKejadian,
+        lokasi: e.lokasi,
         deskripsi: e.deskripsi,
+        status: e.status,
         fotoKm: e.fotoKm,
         foto1: e.foto1,
         foto2: e.foto2,

@@ -18,7 +18,9 @@ class DetailKendaraanDetailScreen extends StatelessWidget {
 
   bool get _hasKir =>
       (item.kartuKir != null && item.kartuKir!.isNotEmpty) ||
-      (item.lembarKir != null && item.lembarKir!.isNotEmpty);
+      (item.lembarKir != null && item.lembarKir!.isNotEmpty) ||
+      (item.kirBerlakuMulai != null && item.kirBerlakuMulai!.isNotEmpty) ||
+      (item.kirBerlakuAkhir != null && item.kirBerlakuAkhir!.isNotEmpty);
 
   @override
   Widget build(BuildContext context) {
@@ -212,6 +214,22 @@ class DetailKendaraanDetailScreen extends StatelessWidget {
           Divider(height: 28, color: Theme.of(context).dividerColor),
           const _SectionHeader(icon: Icons.assignment_outlined, label: 'Dokumen KIR', color: Color(0xFF7B61FF)),
           const SizedBox(height: 10),
+          if ((item.kirBerlakuMulai != null && item.kirBerlakuMulai!.isNotEmpty) || (item.kirBerlakuAkhir != null && item.kirBerlakuAkhir!.isNotEmpty)) ...[
+            Row(children: [
+              const Icon(Icons.calendar_today_outlined, size: 14, color: AppTheme.textSecondary),
+              const SizedBox(width: 6),
+              const Text('Masa Berlaku:', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  '${FormatHelper.date(item.kirBerlakuMulai)} - ${FormatHelper.date(item.kirBerlakuAkhir)}',
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF7B61FF)),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ]),
+            const SizedBox(height: 12),
+          ],
           if (item.kartuKir != null && item.kartuKir!.isNotEmpty)
             _KirDocRow(label: 'Kartu KIR', url: item.kartuKir!),
           if (item.kartuKir != null && item.kartuKir!.isNotEmpty &&

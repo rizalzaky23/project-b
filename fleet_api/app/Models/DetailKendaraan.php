@@ -24,11 +24,15 @@ class DetailKendaraan extends Model
         'foto_km',
         'kartu_kir',
         'lembar_kir',
+        'kir_berlaku_mulai',
+        'kir_berlaku_akhir',
     ];
 
     protected $casts = [
         'stnk_berlaku_mulai' => 'date',
         'stnk_berlaku_akhir' => 'date',
+        'kir_berlaku_mulai'  => 'date',
+        'kir_berlaku_akhir'  => 'date',
     ];
 
     public function kendaraan()

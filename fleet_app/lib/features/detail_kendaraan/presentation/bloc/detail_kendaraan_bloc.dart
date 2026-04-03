@@ -19,7 +19,7 @@ class DetailKendaraanCreateRequested extends DetailKendaraanEvent {
   final int kendaraanId;
   final String noPolisi, namaPemilik;
   final String? pemilikKomersial, pemilikFiskal;
-  final String? stnkBerlakuMulai, stnkBerlakuAkhir;
+  final String? stnkBerlakuMulai, stnkBerlakuAkhir, kirBerlakuMulai, kirBerlakuAkhir;
   final XFile? fotoStnk, fotoBpkb, fotoNomor, fotoKm, kartuKir, lembarKir;
   DetailKendaraanCreateRequested({
     required this.kendaraanId,
@@ -29,6 +29,8 @@ class DetailKendaraanCreateRequested extends DetailKendaraanEvent {
     this.pemilikFiskal,
     this.stnkBerlakuMulai,
     this.stnkBerlakuAkhir,
+    this.kirBerlakuMulai,
+    this.kirBerlakuAkhir,
     this.fotoStnk,
     this.fotoBpkb,
     this.fotoNomor,
@@ -41,7 +43,7 @@ class DetailKendaraanCreateRequested extends DetailKendaraanEvent {
 class DetailKendaraanUpdateRequested extends DetailKendaraanEvent {
   final int id;
   final String? noPolisi, namaPemilik, pemilikKomersial, pemilikFiskal;
-  final String? stnkBerlakuMulai, stnkBerlakuAkhir;
+  final String? stnkBerlakuMulai, stnkBerlakuAkhir, kirBerlakuMulai, kirBerlakuAkhir;
   final XFile? fotoStnk, fotoBpkb, fotoNomor, fotoKm, kartuKir, lembarKir;
   final bool fotoStnkDeleted, fotoBpkbDeleted, fotoNomorDeleted, fotoKmDeleted, kartuKirDeleted, lembarKirDeleted;
 
@@ -53,6 +55,8 @@ class DetailKendaraanUpdateRequested extends DetailKendaraanEvent {
     this.pemilikFiskal,
     this.stnkBerlakuMulai,
     this.stnkBerlakuAkhir,
+    this.kirBerlakuMulai,
+    this.kirBerlakuAkhir,
     this.fotoStnk,
     this.fotoBpkb,
     this.fotoNomor,
@@ -150,6 +154,8 @@ class DetailKendaraanBloc extends Bloc<DetailKendaraanEvent, DetailKendaraanStat
         fotoStnk: e.fotoStnk,
         stnkBerlakuMulai: e.stnkBerlakuMulai,
         stnkBerlakuAkhir: e.stnkBerlakuAkhir,
+        kirBerlakuMulai: e.kirBerlakuMulai,
+        kirBerlakuAkhir: e.kirBerlakuAkhir,
         fotoBpkb: e.fotoBpkb,
         fotoNomor: e.fotoNomor,
         fotoKm: e.fotoKm,
@@ -172,6 +178,8 @@ class DetailKendaraanBloc extends Bloc<DetailKendaraanEvent, DetailKendaraanStat
         fotoStnk: e.fotoStnk,
         stnkBerlakuMulai: e.stnkBerlakuMulai,
         stnkBerlakuAkhir: e.stnkBerlakuAkhir,
+        kirBerlakuMulai: e.kirBerlakuMulai,
+        kirBerlakuAkhir: e.kirBerlakuAkhir,
         fotoBpkb: e.fotoBpkb,
         fotoNomor: e.fotoNomor,
         fotoKm: e.fotoKm,

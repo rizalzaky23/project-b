@@ -35,6 +35,8 @@ class DetailKendaraanRepositoryImpl implements DetailKendaraanRepository {
     XFile? fotoStnk,
     String? stnkBerlakuMulai,
     String? stnkBerlakuAkhir,
+    String? kirBerlakuMulai,
+    String? kirBerlakuAkhir,
     XFile? fotoBpkb,
     XFile? fotoNomor,
     XFile? fotoKm,
@@ -50,6 +52,8 @@ class DetailKendaraanRepositoryImpl implements DetailKendaraanRepository {
       if (pemilikFiskal != null) fields['pemilik_viskal'] = pemilikFiskal;
       if (stnkBerlakuMulai != null) fields['stnk_berlaku_mulai'] = stnkBerlakuMulai;
       if (stnkBerlakuAkhir != null) fields['stnk_berlaku_akhir'] = stnkBerlakuAkhir;
+      if (kirBerlakuMulai != null) fields['kir_berlaku_mulai'] = kirBerlakuMulai;
+      if (kirBerlakuAkhir != null) fields['kir_berlaku_akhir'] = kirBerlakuAkhir;
       final formData = FormData.fromMap(fields);
       for (final entry in [('foto_stnk', fotoStnk), ('foto_bpkb', fotoBpkb), ('foto_nomor', fotoNomor), ('foto_km', fotoKm)]) {
         if (entry.$2 != null) await addFileToForm(formData, entry.$1, entry.$2);
@@ -70,6 +74,8 @@ class DetailKendaraanRepositoryImpl implements DetailKendaraanRepository {
     XFile? fotoStnk,
     String? stnkBerlakuMulai,
     String? stnkBerlakuAkhir,
+    String? kirBerlakuMulai,
+    String? kirBerlakuAkhir,
     XFile? fotoBpkb,
     XFile? fotoNomor,
     XFile? fotoKm,
@@ -89,6 +95,8 @@ class DetailKendaraanRepositoryImpl implements DetailKendaraanRepository {
       if (pemilikFiskal != null) fields['pemilik_viskal'] = pemilikFiskal;
       if (stnkBerlakuMulai != null) fields['stnk_berlaku_mulai'] = stnkBerlakuMulai;
       if (stnkBerlakuAkhir != null) fields['stnk_berlaku_akhir'] = stnkBerlakuAkhir;
+      if (kirBerlakuMulai != null) fields['kir_berlaku_mulai'] = kirBerlakuMulai;
+      if (kirBerlakuAkhir != null) fields['kir_berlaku_akhir'] = kirBerlakuAkhir;
       final formData = FormData.fromMap(fields);
       await addFileToForm(formData, 'foto_stnk', fotoStnk, deleted: fotoStnkDeleted, deleteKey: 'delete_foto_stnk');
       await addFileToForm(formData, 'foto_bpkb', fotoBpkb, deleted: fotoBpkbDeleted, deleteKey: 'delete_foto_bpkb');

@@ -19,6 +19,8 @@ class ServisListScreen extends StatefulWidget {
 
 class _ServisListScreenState extends State<ServisListScreen> {
   final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -37,6 +39,7 @@ class _ServisListScreenState extends State<ServisListScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -86,21 +89,58 @@ class _ServisListScreenState extends State<ServisListScreen> {
             },
           ),
         ),
-        body: BlocListener<ServisBloc, ServisState>(
-          listener: (ctx, state) {
-            if (state is ServisActionSuccess) {
-              ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: AppTheme.success));
-              ctx
-                  .read<ServisBloc>()
-                  .add(ServisLoadRequested(kendaraanId: widget.kendaraanId));
-            } else if (state is ServisActionError) {
-              ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                  content: Text(state.failure.message),
-                  backgroundColor: AppTheme.error));
-            }
-          },
+        body: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              color: Theme.of(context).colorScheme.surface,
+              child: TextField(
+                controller: _searchController,
+                onChanged: (val) => setState(() => _searchQuery = val),
+                decoration: InputDecoration(
+                  hintText: 'Cari servis / bengkel...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF7B61FF), width: 1.5),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: BlocListener<ServisBloc, ServisState>(
+                listener: (ctx, state) {
+                  if (state is ServisActionSuccess) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: AppTheme.success));
+                    ctx
+                        .read<ServisBloc>()
+                        .add(ServisLoadRequested(kendaraanId: widget.kendaraanId));
+                  } else if (state is ServisActionError) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                        content: Text(state.failure.message),
+                        backgroundColor: AppTheme.error));
+                  }
+                },
           child: BlocBuilder<ServisBloc, ServisState>(
             builder: (ctx, state) {
               if (state is ServisLoading) return const AppLoading();
@@ -112,7 +152,19 @@ class _ServisListScreenState extends State<ServisListScreen> {
                         ServisLoadRequested(kendaraanId: widget.kendaraanId)));
               }
               if (state is ServisLoaded) {
-                if (state.items.isEmpty) {
+                final filteredItems = _searchQuery.isEmpty
+                    ? state.items
+                    : state.items.where((item) {
+                        final q = _searchQuery.toLowerCase();
+                        final plat = (item.kendaraan?['kode_kendaraan'] as String?)?.toLowerCase() ?? '';
+                        // Servis response fields depend on backend but we can check common fields
+                        // we'll safely match against string representations
+                        return item.tanggalServis.toLowerCase().contains(q) ||
+                               item.kilometer.toString().contains(q) ||
+                               plat.contains(q);
+                      }).toList();
+
+                if (filteredItems.isEmpty) {
                   return const EmptyState(
                       message: 'Belum ada data servis',
                       icon: Icons.build_circle_outlined);
@@ -120,16 +172,18 @@ class _ServisListScreenState extends State<ServisListScreen> {
                 return ListView.separated(
                   controller: _scrollController,
                   padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 80),
-                  itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
+                  itemCount: filteredItems.length + (state.isLoadingMore ? 1 : 0),
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (_, i) {
-                    if (i == state.items.length) {
+                    if (i == filteredItems.length && state.isLoadingMore) {
                       return const Center(
                           child: Padding(
                               padding: EdgeInsets.all(16),
                               child: CircularProgressIndicator()));
                     }
-                    final item = state.items[i];
+                    if (i >= filteredItems.length) return const SizedBox.shrink();
+                    
+                    final item = filteredItems[i];
                     const accentColor = AppTheme.secondary;
 
                     return InkWell(
@@ -274,6 +328,9 @@ class _ServisListScreenState extends State<ServisListScreen> {
               return const SizedBox();
             },
           ),
+        ),
+        ),
+        ],
         ),
         floatingActionButton: Builder(
           builder: (context) {

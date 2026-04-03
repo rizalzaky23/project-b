@@ -1,0 +1,1 @@
+<?php $req = \Illuminate\Http\Request::create("/api/kejadian-kendaraan/1", "POST", ["_method" => "PUT", "jenis_kejadian" => "Testing", "lokasi" => "Jakarta", "status" => "selesai"]); $req->headers->set("Accept", "application/json"); echo app()->handle($req)->getContent();

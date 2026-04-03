@@ -7,7 +7,7 @@ class DetailKendaraanModel extends DetailKendaraanEntity {
     required super.namaPemilik, super.pemilikKomersial, super.pemilikFiskal,
     super.fotoStnk, super.stnkBerlakuMulai, super.stnkBerlakuAkhir,
     super.fotoBpkb, super.fotoNomor, super.fotoKm,
-    super.kartuKir, super.lembarKir, super.createdAt, super.kendaraan,
+    super.kartuKir, super.lembarKir, super.kirBerlakuMulai, super.kirBerlakuAkhir, super.createdAt, super.kendaraan,
   });
 
   factory DetailKendaraanModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +26,8 @@ class DetailKendaraanModel extends DetailKendaraanEntity {
       fotoKm: ApiConstants.photoUrl(json['foto_km']),
       kartuKir: ApiConstants.photoUrl(json['kartu_kir']),
       lembarKir: ApiConstants.photoUrl(json['lembar_kir']),
+      kirBerlakuMulai: json['kir_berlaku_mulai'],
+      kirBerlakuAkhir: json['kir_berlaku_akhir'],
       createdAt: json['created_at'],
       kendaraan: json['kendaraan'] as Map<String, dynamic>?,
     );

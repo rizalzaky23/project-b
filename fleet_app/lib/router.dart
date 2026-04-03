@@ -95,13 +95,21 @@ final GoRouter appRouter = GoRouter(
       builder: (ctx, state) {
         final entity = state.extra as KendaraanEntity?;
         if (entity != null) {
-          return BlocProvider(
-            create: (_) => sl<KendaraanBloc>(),
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => sl<KendaraanBloc>()),
+              BlocProvider(create: (_) => sl<DetailKendaraanBloc>()),
+              BlocProvider(create: (_) => sl<AsuransiBloc>()),
+            ],
             child: KendaraanDetailScreen(kendaraan: entity),
           );
         }
-        return BlocProvider(
-          create: (_) => sl<KendaraanBloc>(),
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => sl<KendaraanBloc>()),
+            BlocProvider(create: (_) => sl<DetailKendaraanBloc>()),
+            BlocProvider(create: (_) => sl<AsuransiBloc>()),
+          ],
           child: _FetchAndShowKendaraanDetail(
               id: int.parse(state.pathParameters['id']!)),
         );

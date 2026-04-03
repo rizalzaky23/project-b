@@ -9,6 +9,8 @@ import '../../domain/entities/kendaraan_entity.dart';
 import '../bloc/kendaraan_bloc.dart';
 import '../widgets/jual_kendaraan_dialog.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../../features/detail_kendaraan/presentation/bloc/detail_kendaraan_bloc.dart';
+import '../../../../features/asuransi/presentation/bloc/asuransi_bloc.dart';
 
 class KendaraanDetailScreen extends StatefulWidget {
   final KendaraanEntity kendaraan;
@@ -26,6 +28,8 @@ class _KendaraanDetailScreenState extends State<KendaraanDetailScreen> {
   void initState() {
     super.initState();
     _kendaraan = widget.kendaraan;
+    context.read<DetailKendaraanBloc>().add(DetailKendaraanLoadRequested(kendaraanId: _kendaraan.id));
+    context.read<AsuransiBloc>().add(AsuransiLoadRequested(kendaraanId: _kendaraan.id));
   }
 
   @override
@@ -174,6 +178,8 @@ class _KendaraanDetailScreenState extends State<KendaraanDetailScreen> {
                 const SizedBox(height: 20),
                 _buildInfoCard(context),
                 const SizedBox(height: 20),
+                _buildDocumentStatus(context),
+                const SizedBox(height: 20),
                 _buildPaymentCard(context),
                 const SizedBox(height: 20),
                 _buildRelatedSection(context),
@@ -208,6 +214,8 @@ class _KendaraanDetailScreenState extends State<KendaraanDetailScreen> {
                 _buildPriceBadge(context),
                 const SizedBox(height: 14),
                 _buildInfoCard(context),
+                const SizedBox(height: 14),
+                _buildDocumentStatus(context),
                 const SizedBox(height: 14),
                 _buildPaymentCard(context),
                 const SizedBox(height: 14),
@@ -533,6 +541,79 @@ class _KendaraanDetailScreenState extends State<KendaraanDetailScreen> {
     );
   }
 
+  // ─── Document status card ────────────────────────────────────────────────
+  
+  Widget _buildDocumentStatus(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Theme.of(context).dividerColor),
+        boxShadow: [
+          BoxShadow(
+              color: AppTheme.primary.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionHeader(
+            icon: Icons.fact_check_outlined,
+            label: 'Status Masa Berlaku Dokumen',
+            color: Color(0xFF00C6AE),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: BlocBuilder<DetailKendaraanBloc, DetailKendaraanState>(
+                  builder: (ctx, state) {
+                    bool isLoading = state is DetailKendaraanLoading || state is DetailKendaraanInitial;
+                    String? stnkAkhir;
+                    String? kirAkhir;
+                    if (state is DetailKendaraanLoaded && state.items.isNotEmpty) {
+                      stnkAkhir = state.items.first.stnkBerlakuAkhir;
+                      kirAkhir = state.items.first.kirBerlakuAkhir;
+                    }
+                    return Row(
+                      children: [
+                        Expanded(child: _DocStatusBadge('STNK', stnkAkhir, isLoading)),
+                        const SizedBox(width: 10),
+                        Expanded(child: _DocStatusBadge('KIR', kirAkhir, isLoading)),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 1,
+                child: BlocBuilder<AsuransiBloc, AsuransiState>(
+                  builder: (ctx, state) {
+                    bool isLoading = state is AsuransiLoading || state is AsuransiInitial;
+                    String? asuransiAkhir;
+                    if (state is AsuransiLoaded && state.items.isNotEmpty) {
+                      asuransiAkhir = state.items.first.tanggalAkhir;
+                    }
+                    return _DocStatusBadge('Asuransi', asuransiAkhir, isLoading);
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Text('*Status ini diekstrak otomatis dari tanggal jatuh tempo dokumen terkait.', 
+            style: TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontStyle: FontStyle.italic)),
+        ],
+      ),
+    );
+  }
+
   // ─── Payment card ─────────────────────────────────────────────────────────
 
   Widget _buildPaymentCard(BuildContext context) {
@@ -839,6 +920,78 @@ class _RelatedButton extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DocStatusBadge extends StatelessWidget {
+  final String label;
+  final String? expiredDateStr;
+  final bool isLoading;
+
+  const _DocStatusBadge(this.label, this.expiredDateStr, this.isLoading);
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))),
+      );
+    }
+
+    Color color;
+    String status;
+    IconData icon;
+
+    if (expiredDateStr == null || expiredDateStr!.isEmpty) {
+      color = Colors.grey;
+      status = 'Tidak Ada';
+      icon = Icons.help_outline;
+    } else {
+      try {
+        final expDate = DateTime.parse(expiredDateStr!);
+        if (expDate.isBefore(DateTime.now())) {
+          color = AppTheme.error;
+          status = 'Kadaluarsa';
+          icon = Icons.cancel_outlined;
+        } else {
+          color = AppTheme.success;
+          status = 'Aktif';
+          icon = Icons.check_circle_outline;
+        }
+      } catch (_) {
+        color = Colors.grey;
+        status = 'Error';
+        icon = Icons.error_outline;
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary), maxLines: 1),
+          const SizedBox(height: 3),
+          Row(
+            children: [
+              Icon(icon, size: 12, color: color),
+              const SizedBox(width: 4),
+              Flexible(child: Text(status, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color), overflow: TextOverflow.ellipsis, maxLines: 1)),
+            ],
+          )
+        ],
       ),
     );
   }

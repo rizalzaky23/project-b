@@ -22,6 +22,8 @@ class UpdateDetailKendaraanRequest extends FormRequest
             'foto_km'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'kartu_kir'           => 'nullable|file|mimes:pdf|max:10240',
             'lembar_kir'          => 'nullable|file|mimes:pdf|max:10240',
+            'kir_berlaku_mulai'   => 'nullable|date',
+            'kir_berlaku_akhir'   => 'nullable|date',
             'delete_foto_stnk'    => 'nullable|in:0,1',
             'delete_foto_bpkb'    => 'nullable|in:0,1',
             'delete_foto_nomor'   => 'nullable|in:0,1',

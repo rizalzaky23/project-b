@@ -14,6 +14,9 @@ class KejadianKendaraan extends Model
     protected $fillable = [
         'kendaraan_id',
         'tanggal',
+        'jenis_kejadian',
+        'lokasi',
+        'status',
         'foto_km',
         'foto_1',
         'foto_2',

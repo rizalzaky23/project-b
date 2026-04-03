@@ -19,6 +19,8 @@ class KejadianListScreen extends StatefulWidget {
 
 class _KejadianListScreenState extends State<KejadianListScreen> {
   final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -36,6 +38,7 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -81,20 +84,57 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
           },
         ),
       ),
-      body: BlocListener<KejadianBloc, KejadianState>(
-        listener: (ctx, state) {
-          if (state is KejadianActionSuccess) {
-            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppTheme.success));
-            ctx.read<KejadianBloc>().add(
-                KejadianLoadRequested(kendaraanId: widget.kendaraanId));
-          } else if (state is KejadianActionError) {
-            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                content: Text(state.failure.message),
-                backgroundColor: AppTheme.error));
-          }
-        },
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            color: Theme.of(context).colorScheme.surface,
+            child: TextField(
+              controller: _searchController,
+              onChanged: (val) => setState(() => _searchQuery = val),
+              decoration: InputDecoration(
+                hintText: 'Cari kejadian / lokasi...',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppTheme.warning, width: 1.5),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: BlocListener<KejadianBloc, KejadianState>(
+              listener: (ctx, state) {
+                if (state is KejadianActionSuccess) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: AppTheme.success));
+                  ctx.read<KejadianBloc>().add(
+                      KejadianLoadRequested(kendaraanId: widget.kendaraanId));
+                } else if (state is KejadianActionError) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                      content: Text(state.failure.message),
+                      backgroundColor: AppTheme.error));
+                }
+              },
         child: BlocBuilder<KejadianBloc, KejadianState>(
           builder: (ctx, state) {
             if (state is KejadianLoading) return const AppLoading();
@@ -107,7 +147,21 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
                           kendaraanId: widget.kendaraanId)));
             }
             if (state is KejadianLoaded) {
-              if (state.items.isEmpty) {
+              final filteredItems = _searchQuery.isEmpty
+                  ? state.items
+                  : state.items.where((item) {
+                      final q = _searchQuery.toLowerCase();
+                      final desc = item.deskripsi?.toLowerCase() ?? '';
+                      final jenis = item.jenisKejadian?.toLowerCase() ?? '';
+                      final loc = item.lokasi?.toLowerCase() ?? '';
+                      final plat = (item.kendaraan?['kode_kendaraan'] as String?)?.toLowerCase() ?? '';
+                      return desc.contains(q) ||
+                          jenis.contains(q) ||
+                          loc.contains(q) ||
+                          plat.contains(q);
+                    }).toList();
+
+              if (filteredItems.isEmpty) {
                 return const EmptyState(
                     message: 'Belum ada data kejadian',
                     icon: Icons.report_problem_outlined);
@@ -115,12 +169,17 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
               return ListView.separated(
                 controller: _scrollController,
                 padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 80),
-                itemCount: state.items.length,
+                itemCount: filteredItems.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (_, i) {
-                  final item = state.items[i];
+                  final item = filteredItems[i];
                   return InkWell(
-                    onTap: () => context.push('/kejadian/${item.id}', extra: item),
+                    onTap: () async {
+                      await context.push('/kejadian/${item.id}', extra: item);
+                      if (context.mounted) {
+                        context.read<KejadianBloc>().add(KejadianLoadRequested(kendaraanId: widget.kendaraanId));
+                      }
+                    },
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
                       padding: const EdgeInsets.all(16),
@@ -166,19 +225,67 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Icon(Icons.calendar_today_outlined,
-                                        size: 13,
-                                        color: AppTheme.textSecondary),
-                                    const SizedBox(width: 4),
-                                    Text(FormatHelper.date(item.tanggal),
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14)),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.calendar_today_outlined, size: 13, color: AppTheme.textSecondary),
+                                        const SizedBox(width: 4),
+                                        Text(FormatHelper.date(item.tanggal), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                      ],
+                                    ),
+                                    if (item.status != null)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: item.status == 'selesai' ? AppTheme.success.withOpacity(0.15) : AppTheme.primary.withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(color: item.status == 'selesai' ? AppTheme.success.withOpacity(0.3) : AppTheme.primary.withOpacity(0.3)),
+                                        ),
+                                        child: Text(item.status == 'selesai' ? 'SELESAI' : 'PROGRES',
+                                          style: TextStyle(color: item.status == 'selesai' ? AppTheme.success : AppTheme.primary, fontWeight: FontWeight.w800, fontSize: 9)),
+                                      ),
                                   ],
                                 ),
-                                if (item.deskripsi != null &&
-                                    item.deskripsi!.isNotEmpty) ...[
+                                if ((item.status != null) || (item.jenisKejadian != null && item.jenisKejadian!.isNotEmpty) || (item.lokasi != null && item.lokasi!.isNotEmpty)) ...[
+                                  const SizedBox(height: 6),
+                                  Wrap(
+                                    spacing: 6, runSpacing: 6,
+                                    children: [
+                                      if (item.status != null)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                          decoration: BoxDecoration(color: (item.status == 'selesai' ? AppTheme.success : AppTheme.primary).withOpacity(0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: (item.status == 'selesai' ? AppTheme.success : AppTheme.primary).withOpacity(0.2))),
+                                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                            Icon(item.status == 'selesai' ? Icons.check_circle_outline : Icons.pending_actions_outlined, size: 10, color: item.status == 'selesai' ? AppTheme.success : AppTheme.primary),
+                                            const SizedBox(width: 4),
+                                            Text(item.status == 'selesai' ? 'SELESAI' : 'PROGRES', style: TextStyle(fontSize: 10, color: item.status == 'selesai' ? AppTheme.success : AppTheme.primary, fontWeight: FontWeight.w600)),
+                                          ]),
+                                        ),
+                                      if (item.jenisKejadian != null && item.jenisKejadian!.isNotEmpty)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                          decoration: BoxDecoration(color: AppTheme.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: AppTheme.warning.withOpacity(0.2))),
+                                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                            const Icon(Icons.category_outlined, size: 10, color: AppTheme.warning),
+                                            const SizedBox(width: 4),
+                                            Text(item.jenisKejadian!, style: const TextStyle(fontSize: 10, color: AppTheme.warning, fontWeight: FontWeight.w600)),
+                                          ]),
+                                        ),
+                                      if (item.lokasi != null && item.lokasi!.isNotEmpty)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                          decoration: BoxDecoration(color: AppTheme.secondary.withOpacity(0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: AppTheme.secondary.withOpacity(0.2))),
+                                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                            const Icon(Icons.location_on_outlined, size: 10, color: AppTheme.secondary),
+                                            const SizedBox(width: 4),
+                                            Text(item.lokasi!, style: const TextStyle(fontSize: 10, color: AppTheme.secondary, fontWeight: FontWeight.w600)),
+                                          ]),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                                if (item.deskripsi != null && item.deskripsi!.isNotEmpty) ...[
                                   const SizedBox(height: 6),
                                   Text(item.deskripsi!,
                                       style: const TextStyle(
@@ -238,6 +345,9 @@ class _KejadianListScreenState extends State<KejadianListScreen> {
             return const SizedBox();
           },
         ),
+      ),
+      ),
+      ],
       ),
       floatingActionButton: Builder(
         builder: (context) {

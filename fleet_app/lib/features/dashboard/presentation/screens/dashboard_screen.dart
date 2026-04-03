@@ -1,6 +1,10 @@
+import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/theme/dark_theme.dart';
 import '../../../../core/theme/theme_notifier.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -72,48 +76,92 @@ class _DashboardScreenState extends State<DashboardScreen>
           }
         },
         child: Scaffold(
-          body: RefreshIndicator(
-            onRefresh: () async => _refresh(),
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                _buildSliverAppBar(context, user?.name ?? 'User', isDesktop),
-                SliverPadding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isDesktop
-                        ? 48
-                        : isTablet
-                            ? 32
-                            : 20,
-                    vertical: 24,
-                  ),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      _AnimatedIn(
-                          delay: 0, child: _buildStats(isTablet, isDesktop)),
-                      const SizedBox(height: 36),
-                      _AnimatedIn(
-                          delay: 150,
-                          child:
-                              _buildMenuSection(context, isTablet, isDesktop)),
-                      const SizedBox(height: 40),
-                    ]),
-                  ),
+          // ─ Stack: slider sebagai background, konten di atas ──────────────────
+          body: Stack(
+            children: [
+              // Layer 1: background slider (seluruh layar)
+              const Positioned.fill(child: _BodySlider()),
+
+              // Layer 2: konten scroll di atasnya
+              RefreshIndicator(
+                onRefresh: () async => _refresh(),
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    _buildSliverAppBar(
+                        context, user?.name ?? 'User', isDesktop),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            isDesktop ? 48 : (isTablet ? 32 : 24),
+                            24,
+                            24,
+                            8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Halo, ${user?.name ?? 'User'} 👋',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Berikut ringkasan armada kendaraan Anda',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white70
+                                    : Colors.black87,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isDesktop
+                            ? 48
+                            : isTablet
+                                ? 32
+                                : 20,
+                        vertical: 24,
+                      ),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          _AnimatedIn(
+                              delay: 0,
+                              child: _buildStats(isTablet, isDesktop)),
+                          const SizedBox(height: 36),
+                          _AnimatedIn(
+                              delay: 150,
+                              child: _buildMenuSection(
+                                  context, isTablet, isDesktop)),
+                          const SizedBox(height: 40),
+                        ]),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ));
   }
 
   Widget _buildSliverAppBar(BuildContext context, String name, bool isDesktop) {
     return SliverAppBar(
-      expandedHeight: isDesktop ? 200 : 185,
+      expandedHeight: isDesktop ? 200 : 160,
       floating: false,
       pinned: true,
       elevation: 0,
       automaticallyImplyLeading: false,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Colors.transparent,
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.parallax,
         background: _HeroBanner(name: name),
@@ -393,88 +441,154 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 }
 
-// ─── Hero Banner ─────────────────────────────────────────────────────────────
+// ─── Hero Banner (3 Logo PT) ──────────────────────────────────────────────────
+// 📁 Logo PT  →  assets/images/logo1.png | logo2.png | logo3.png
 
 class _HeroBanner extends StatelessWidget {
   final String name;
   const _HeroBanner({required this.name});
 
+  static const _logos = [
+    'assets/images/logo1.png',
+    'assets/images/logo2.png',
+    'assets/images/logo3.png',
+  ];
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark
+        ? Colors.white.withOpacity(0.08)
+        : Colors.white.withOpacity(0.15);
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          // Gradient gelap khas banner
           colors: isDark
-              ? [
-                  const Color(0xFF1A1A2E),
-                  const Color(0xFF16213E),
-                  const Color(0xFF1F3460)
-                ]
-              : [
-                  const Color(0xFF6C63FF),
-                  const Color(0xFF5B86E5),
-                  const Color(0xFF48C9B0)
-                ],
+              ? [const Color(0xFF0D0D1C), const Color(0xFF151525)]
+              : [const Color(0xFF0D1B6E), const Color(0xFF1A237E)],
         ),
       ),
-      child: Stack(
-        children: [
-          const Positioned(
-              top: -40,
-              right: -40,
-              child: _DecoCircle(size: 160, opacity: 0.07)),
-          const Positioned(
-              bottom: -30,
-              right: 60,
-              child: _DecoCircle(size: 100, opacity: 0.05)),
-          const Positioned(
-              top: 30, right: 130, child: _DecoCircle(size: 55, opacity: 0.09)),
-          Positioned(
-            bottom: 30,
-            left: 24,
-            right: 24,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Halo, $name 👋',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    )),
-                const SizedBox(height: 5),
-                Text('Berikut ringkasan armada kendaraan Anda',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.75),
-                      fontSize: 14,
-                    )),
-              ],
-            ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(_logos.length, (i) {
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Image.asset(
+                    _logos[i],
+                    height: 130, // Ukuran logo fix lebih besar
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Icon(
+                      Icons.business_rounded,
+                      color: Colors.white.withOpacity(0.5),
+                      size: 64,
+                    ),
+                  ),
+                ),
+              );
+            }),
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _DecoCircle extends StatelessWidget {
-  final double size, opacity;
-  const _DecoCircle({required this.size, required this.opacity});
+// ─── Body Slider (Background) ────────────────────────────────────────────────
+
+class _BodySlider extends StatefulWidget {
+  const _BodySlider();
   @override
-  Widget build(BuildContext context) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border:
-              Border.all(color: Colors.white.withOpacity(opacity), width: 2),
+  State<_BodySlider> createState() => _BodySliderState();
+}
+
+class _BodySliderState extends State<_BodySlider> {
+  static const _slides = [
+    'assets/images/slide1.png',
+    'assets/images/slide2.png',
+    'assets/images/slide3.png',
+  ];
+
+  final PageController _pageCtrl = PageController();
+  int _currentPage = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted) return;
+      final next = (_currentPage + 1) % _slides.length;
+      _pageCtrl.animateToPage(next,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: _pageCtrl,
+          onPageChanged: (p) => setState(() => _currentPage = p),
+          itemCount: _slides.length,
+          itemBuilder: (_, i) => Image.asset(
+            _slides[i],
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [const Color(0xFF1A1A2E), const Color(0xFF2D2B55)]
+                      : [const Color(0xFF3949AB), const Color(0xFF1E88E5)],
+                ),
+              ),
+            ),
+          ),
         ),
-      );
+        
+        // Gradient gelap untuk memastikan konten tetap jelas
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withOpacity(0.2),
+                Colors.black.withOpacity(0.85),
+              ],
+              stops: const [0.1, 0.9],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
@@ -641,6 +755,7 @@ class _MenuCardState extends State<_MenuCard>
 
   @override
   Widget build(BuildContext context) {
+    final color = widget.item.color;
     return GestureDetector(
       onTapDown: (_) => _pressCtrl.forward(),
       onTapUp: (_) {
@@ -651,52 +766,104 @@ class _MenuCardState extends State<_MenuCard>
       child: ScaleTransition(
         scale: _scale,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-                color: widget.item.color.withOpacity(0.15), width: 1.5),
             boxShadow: [
               BoxShadow(
-                  color: widget.item.color.withOpacity(0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3)),
+                  color: color.withOpacity(0.28),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4)),
             ],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
+              // Full-card gradient background
               Container(
-                width: 52,
-                height: 52,
                 decoration: BoxDecoration(
-                  color: widget.item.color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: widget.item.color.withOpacity(0.2)),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      color,
+                      Color.lerp(color, Colors.black, 0.28)!,
+                    ],
+                  ),
                 ),
-                child:
-                    Icon(widget.item.icon, color: widget.item.color, size: 26),
               ),
-              const SizedBox(height: 10),
-              Text(
-                widget.item.label,
-                style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+
+              // Decorative circle top-right
+              Positioned(
+                top: -14,
+                right: -14,
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.10),
+                  ),
+                ),
               ),
-              const SizedBox(height: 3),
-              Text(
-                widget.item.subtitle,
-                style: const TextStyle(
-                    fontSize: 10, color: AppTheme.textSecondary),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+
+              // Content
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Icon – large, white
+                    Expanded(
+                      child: Center(
+                        child: Icon(
+                          widget.item.icon,
+                          color: Colors.white,
+                          size: 36,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.25),
+                              blurRadius: 8,
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Divider line
+                    Container(
+                      height: 1,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      color: Colors.white.withOpacity(0.2),
+                    ),
+                    const SizedBox(height: 7),
+
+                    // Label
+                    Text(
+                      widget.item.label,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.1),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.item.subtitle,
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.75),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w500),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

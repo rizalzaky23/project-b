@@ -15,6 +15,8 @@ class DetailKendaraanEntity extends Equatable {
   final String? fotoKm;
   final String? kartuKir;
   final String? lembarKir;
+  final String? kirBerlakuMulai;
+  final String? kirBerlakuAkhir;
   final String? createdAt;
   final Map<String, dynamic>? kendaraan;
 
@@ -33,6 +35,8 @@ class DetailKendaraanEntity extends Equatable {
     this.fotoKm,
     this.kartuKir,
     this.lembarKir,
+    this.kirBerlakuMulai,
+    this.kirBerlakuAkhir,
     this.createdAt,
     this.kendaraan,
   });

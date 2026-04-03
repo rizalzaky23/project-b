@@ -19,6 +19,8 @@ class PenyewaanListScreen extends StatefulWidget {
 
 class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
   final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
   bool? _filterAktif;
 
   @override
@@ -37,6 +39,7 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -130,19 +133,56 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
           ),
         ],
       ),
-      body: BlocListener<PenyewaanBloc, PenyewaanState>(
-        listener: (ctx, state) {
-          if (state is PenyewaanActionSuccess) {
-            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppTheme.success));
-            _reload();
-          } else if (state is PenyewaanActionError) {
-            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                content: Text(state.failure.message),
-                backgroundColor: AppTheme.error));
-          }
-        },
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            color: Theme.of(context).colorScheme.surface,
+            child: TextField(
+              controller: _searchController,
+              onChanged: (val) => setState(() => _searchQuery = val),
+              decoration: InputDecoration(
+                hintText: 'Cari penyewa / lokasi...',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppTheme.secondary, width: 1.5),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: BlocListener<PenyewaanBloc, PenyewaanState>(
+              listener: (ctx, state) {
+                if (state is PenyewaanActionSuccess) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: AppTheme.success));
+                  _reload();
+                } else if (state is PenyewaanActionError) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                      content: Text(state.failure.message),
+                      backgroundColor: AppTheme.error));
+                }
+              },
         child: BlocBuilder<PenyewaanBloc, PenyewaanState>(
           builder: (ctx, state) {
             if (state is PenyewaanLoading) return const AppLoading();
@@ -154,17 +194,33 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
             }
             if (state is PenyewaanLoaded) {
               final now = DateTime.now();
-              final filteredItems = _filterAktif == null
-                  ? state.items
-                  : state.items.where((item) {
-                      final mulai = DateTime.tryParse(item.tanggalMulai);
-                      final selesai = DateTime.tryParse(item.tanggalSelesai);
-                      final isActive = mulai != null &&
-                          selesai != null &&
-                          now.isAfter(mulai) &&
-                          now.isBefore(selesai);
-                      return _filterAktif! ? isActive : !isActive;
-                    }).toList();
+              final filteredItems = state.items.where((item) {
+                // Filter dropdown (aktif/selesai/semua)
+                bool passStatus = true;
+                if (_filterAktif != null) {
+                  final mulai = DateTime.tryParse(item.tanggalMulai);
+                  final selesai = DateTime.tryParse(item.tanggalSelesai);
+                  final isActive = mulai != null &&
+                      selesai != null &&
+                      now.isAfter(mulai) &&
+                      now.isBefore(selesai);
+                  passStatus = _filterAktif! ? isActive : !isActive;
+                }
+
+                // Filter search
+                bool passSearch = true;
+                if (_searchQuery.isNotEmpty) {
+                  final q = _searchQuery.toLowerCase();
+                  final loc = item.lokasiSewa?.toLowerCase() ?? '';
+                  final plat = (item.kendaraan?['kode_kendaraan'] as String?)?.toLowerCase() ?? '';
+                  passSearch = item.namaPenyewa.toLowerCase().contains(q) ||
+                      item.penanggungJawab.toLowerCase().contains(q) ||
+                      loc.contains(q) ||
+                      plat.contains(q);
+                }
+
+                return passStatus && passSearch;
+              }).toList();
               if (filteredItems.isEmpty) {
                 return const EmptyState(
                     message: 'Belum ada data penyewaan',
@@ -377,6 +433,9 @@ class _PenyewaanListScreenState extends State<PenyewaanListScreen> {
             return const SizedBox();
           },
         ),
+      ),
+      ),
+      ],
       ),
       floatingActionButton: Builder(
         builder: (context) {

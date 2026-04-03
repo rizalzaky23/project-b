@@ -29,7 +29,14 @@ class KejadianKendaraanController extends Controller
             )
             ->orderByDesc('tanggal');
 
-        return $this->paginatedResponse($query->paginate($request->per_page ?? 15));
+        $paginator = $query->paginate($request->per_page ?? 15);
+        $paginator->getCollection()->transform(fn($item) => array_merge($item->toArray(), [
+            'status' => $item->status,
+            'jenis_kejadian' => $item->jenis_kejadian,
+            'lokasi' => $item->lokasi,
+        ]));
+
+        return $this->paginatedResponse($paginator);
     }
 
     public function store(StoreKejadianKendaraanRequest $request)
@@ -51,12 +58,23 @@ class KejadianKendaraanController extends Controller
     public function show(KejadianKendaraan $kejadian)
     {
         $kejadian->load('kendaraan');
-        return $this->successResponse($kejadian);
+        return $this->successResponse(array_merge($kejadian->toArray(), [
+            'status' => $kejadian->status,
+            'jenis_kejadian' => $kejadian->jenis_kejadian,
+            'lokasi' => $kejadian->lokasi,
+        ]));
     }
 
     public function update(UpdateKejadianKendaraanRequest $request, KejadianKendaraan $kejadian)
     {
         $data = $request->validated();
+
+        // Convert empty strings to null for nullable fields
+        foreach (['jenis_kejadian', 'lokasi', 'deskripsi'] as $field) {
+            if (array_key_exists($field, $data) && $data[$field] === '') {
+                $data[$field] = null;
+            }
+        }
 
         foreach ($this->photoFields as $field) {
             if ($request->hasFile($field)) {
@@ -71,6 +89,8 @@ class KejadianKendaraanController extends Controller
         }
 
         $kejadian->update($data);
+        $kejadian->refresh(); // Ensure new fields are loaded from DB
+        $kejadian->load('kendaraan');
 
         return $this->successResponse($kejadian, 'Data kejadian berhasil diperbarui.');
     }

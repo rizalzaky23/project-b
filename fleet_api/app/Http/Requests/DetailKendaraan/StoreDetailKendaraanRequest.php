@@ -21,8 +21,10 @@ class StoreDetailKendaraanRequest extends FormRequest
             'foto_bpkb'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'foto_nomor'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'foto_km'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'kartu_kir'          => 'nullable|file|mimes:pdf|max:10240',
-            'lembar_kir'         => 'nullable|file|mimes:pdf|max:10240',
+            'kartu_kir'           => 'nullable|file|mimes:pdf|max:10240',
+            'lembar_kir'          => 'nullable|file|mimes:pdf|max:10240',
+            'kir_berlaku_mulai'   => 'nullable|date',
+            'kir_berlaku_akhir'   => 'nullable|date',
         ];
     }
 }

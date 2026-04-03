@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/dark_theme.dart';
 
+import '../../../../shared/utils/format_helper.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
@@ -191,6 +192,31 @@ class _DetailKendaraanListScreenState extends State<DetailKendaraanListScreen> {
                                               fontSize: 13)),
                                     ],
                                   ),
+                                  if ((item.kirBerlakuMulai != null && item.kirBerlakuMulai!.isNotEmpty) || (item.kirBerlakuAkhir != null && item.kirBerlakuAkhir!.isNotEmpty)) ...[
+                                    const SizedBox(height: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF7B61FF).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: const Color(0xFF7B61FF).withOpacity(0.2)),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.assignment_outlined, size: 12, color: Color(0xFF7B61FF)),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              'KIR: ${FormatHelper.date(item.kirBerlakuMulai)} - ${FormatHelper.date(item.kirBerlakuAkhir)}',
+                                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF7B61FF)),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
 
                                 ],
                               ),
