@@ -381,6 +381,13 @@ class _DashboardScreenState extends State<DashboardScreen>
         'Tambah & atur akun',
         onTap: () => context.push('/users'),
       ));
+      items.add(_NavItem(
+        'Kelola Merek',
+        Icons.branding_watermark_rounded,
+        AppTheme.primary,
+        'Master data merek',
+        onTap: () => context.push('/mereks'),
+      ));
     }
 
     final cols = isDesktop

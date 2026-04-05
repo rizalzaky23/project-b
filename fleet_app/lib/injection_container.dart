@@ -34,6 +34,10 @@ import '../features/user_management/data/datasources/user_remote_datasource.dart
 import '../features/user_management/data/repositories/user_repository_impl.dart';
 import '../features/user_management/domain/repositories/user_repository.dart';
 import '../features/user_management/presentation/bloc/user_bloc.dart';
+import '../features/merek/data/datasources/merek_remote_datasource.dart';
+import '../features/merek/data/repositories/merek_repository_impl.dart';
+import '../features/merek/domain/repositories/merek_repository.dart';
+import '../features/merek/presentation/bloc/merek_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -87,4 +91,9 @@ void setupDependencies() {
   sl.registerLazySingleton<UserRemoteDataSource>(() => UserRemoteDataSourceImpl(sl()));
   sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(sl()));
   sl.registerFactory(() => UserBloc(sl()));
+
+  // Merek
+  sl.registerLazySingleton<MerekRemoteDataSource>(() => MerekRemoteDataSourceImpl(sl()));
+  sl.registerLazySingleton<MerekRepository>(() => MerekRepositoryImpl(sl()));
+  sl.registerFactory(() => MerekBloc(sl()));
 }

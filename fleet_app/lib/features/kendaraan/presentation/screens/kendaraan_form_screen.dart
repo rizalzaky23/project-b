@@ -8,6 +8,7 @@ import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/photo_picker_widget.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../domain/entities/kendaraan_entity.dart';
+import '../../../merek/presentation/bloc/merek_bloc.dart';
 import '../bloc/kendaraan_bloc.dart';
 
 class KendaraanFormScreen extends StatefulWidget {
@@ -57,6 +58,7 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
   @override
   void initState() {
     super.initState();
+    context.read<MerekBloc>().add(MerekLoadRequested());
     final e = widget.existing;
     _kodeController           = TextEditingController(text: e?.kodeKendaraan ?? '');
     _merkController           = TextEditingController(text: e?.merk ?? '');
@@ -358,6 +360,7 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
     required T? value,
     required List<DropdownMenuItem<T>> items,
     required void Function(T?) onChanged,
+    String? Function(T?)? validator,
   }) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(label, style: const TextStyle(
@@ -365,6 +368,7 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
       const SizedBox(height: 6),
       DropdownButtonFormField<T>(
         initialValue: value,
+        validator: validator,
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: AppTheme.primary, size: 20),
           hintText: hint,
@@ -478,8 +482,31 @@ class _KendaraanFormScreenState extends State<KendaraanFormScreen> {
       AppTextField(controller: _kodeController, label: 'Kode Kendaraan',
           prefixIcon: Icons.tag, validator: (v) => req(v, 'Kode kendaraan')),
       const SizedBox(height: 16),
-      AppTextField(controller: _merkController, label: 'Merk',
-          prefixIcon: Icons.branding_watermark_outlined, validator: (v) => req(v, 'Merk')),
+      BlocBuilder<MerekBloc, MerekState>(
+        builder: (context, merekState) {
+          List<String> options = [];
+          if (merekState is MerekLoaded) {
+            options = merekState.items.map((e) => e.nama).toList();
+          }
+          final currentValue = _merkController.text.trim();
+          if (currentValue.isNotEmpty && !options.any((e) => e.toLowerCase() == currentValue.toLowerCase())) {
+            options.insert(0, currentValue);
+          }
+          final isError = merekState is MerekError;
+
+          return _dropdown<String>(
+            label: 'Merk',
+            icon: Icons.branding_watermark_outlined,
+            hint: merekState is MerekLoading ? 'Memuat merek...' : isError ? 'Gagal memuat' : 'Pilih merk kendaraan',
+            value: currentValue.isEmpty ? null : currentValue,
+            items: options.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+            onChanged: (v) {
+              if (v != null) _merkController.text = v;
+            },
+            validator: (v) => req(v, 'Merk'),
+          );
+        },
+      ),
       const SizedBox(height: 16),
       AppTextField(controller: _tipeController, label: 'Tipe',
           prefixIcon: Icons.directions_car_outlined, validator: (v) => req(v, 'Tipe')),

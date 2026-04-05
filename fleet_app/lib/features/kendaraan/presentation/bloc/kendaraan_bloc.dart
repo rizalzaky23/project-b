@@ -15,11 +15,13 @@ abstract class KendaraanEvent extends Equatable {
 
 class KendaraanLoadRequested extends KendaraanEvent {
   final String? search;
+  final String? merk;
   final String? kepemilikan;
   final String? status;
-  KendaraanLoadRequested({this.search, this.kepemilikan, this.status});
+  KendaraanLoadRequested(
+      {this.search, this.merk, this.kepemilikan, this.status});
   @override
-  List<Object?> get props => [search, kepemilikan, status];
+  List<Object?> get props => [search, merk, kepemilikan, status];
 }
 
 class KendaraanLoadMoreRequested extends KendaraanEvent {}
@@ -64,7 +66,13 @@ class KendaraanCreateRequested extends KendaraanEvent {
 
 class KendaraanUpdateRequested extends KendaraanEvent {
   final int id;
-  final String? kodeKendaraan, merk, tipe, warna, noChasis, noMesin, kepemilikan;
+  final String? kodeKendaraan,
+      merk,
+      tipe,
+      warna,
+      noChasis,
+      noMesin,
+      kepemilikan;
   final String? jenisPembayaran;
   final String? jenisKredit;
   final int? tenor;
@@ -73,7 +81,10 @@ class KendaraanUpdateRequested extends KendaraanEvent {
   final int? tahunPerolehan, tahunPembuatan;
   final double? hargaPerolehan;
   final XFile? fotoDepan, fotoKiri, fotoKanan, fotoBelakang;
-  final bool fotoDepanDeleted, fotoKiriDeleted, fotoKananDeleted, fotoBelakangDeleted;
+  final bool fotoDepanDeleted,
+      fotoKiriDeleted,
+      fotoKananDeleted,
+      fotoBelakangDeleted;
   final String? status;
   final String? tanggalJual;
   final double? hargaJual;
@@ -126,6 +137,7 @@ abstract class KendaraanState extends Equatable {
 }
 
 class KendaraanInitial extends KendaraanState {}
+
 class KendaraanLoading extends KendaraanState {}
 
 class KendaraanLoaded extends KendaraanState {
@@ -133,7 +145,8 @@ class KendaraanLoaded extends KendaraanState {
   final PaginationMeta meta;
   final bool isLoadingMore;
 
-  KendaraanLoaded({required this.items, required this.meta, this.isLoadingMore = false});
+  KendaraanLoaded(
+      {required this.items, required this.meta, this.isLoadingMore = false});
 
   KendaraanLoaded copyWith({
     List<KendaraanEntity>? items,
@@ -178,6 +191,7 @@ class KendaraanActionError extends KendaraanState {
 class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
   final KendaraanRepository _repository;
   String? _lastSearch;
+  String? _lastMerk;
   String? _lastKepemilikan;
   String? _lastStatus;
   List<KendaraanEntity> _currentItems = [];
@@ -191,15 +205,18 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
     on<KendaraanDeleteRequested>(_onDelete);
   }
 
-  Future<void> _onLoad(KendaraanLoadRequested event, Emitter<KendaraanState> emit) async {
+  Future<void> _onLoad(
+      KendaraanLoadRequested event, Emitter<KendaraanState> emit) async {
     emit(KendaraanLoading());
     _lastSearch = event.search;
+    _lastMerk = event.merk;
     _lastKepemilikan = event.kepemilikan;
     _lastStatus = event.status;
     try {
       final result = await _repository.getAll(
         page: 1,
         search: event.search,
+        merk: event.merk,
         kepemilikan: event.kepemilikan,
         status: event.status,
       );
@@ -215,13 +232,16 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
     }
   }
 
-  Future<void> _onLoadMore(KendaraanLoadMoreRequested event, Emitter<KendaraanState> emit) async {
+  Future<void> _onLoadMore(
+      KendaraanLoadMoreRequested event, Emitter<KendaraanState> emit) async {
     if (_currentMeta == null || !_currentMeta!.hasNextPage) return;
-    emit(KendaraanLoaded(items: _currentItems, meta: _currentMeta!, isLoadingMore: true));
+    emit(KendaraanLoaded(
+        items: _currentItems, meta: _currentMeta!, isLoadingMore: true));
     try {
       final result = await _repository.getAll(
         page: _currentMeta!.currentPage + 1,
         search: _lastSearch,
+        merk: _lastMerk,
         kepemilikan: _lastKepemilikan,
         status: _lastStatus,
       );
@@ -233,7 +253,8 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
     }
   }
 
-  Future<void> _onCreate(KendaraanCreateRequested event, Emitter<KendaraanState> emit) async {
+  Future<void> _onCreate(
+      KendaraanCreateRequested event, Emitter<KendaraanState> emit) async {
     emit(KendaraanActionLoading());
     try {
       await _repository.create(
@@ -267,7 +288,8 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
     }
   }
 
-  Future<void> _onUpdate(KendaraanUpdateRequested event, Emitter<KendaraanState> emit) async {
+  Future<void> _onUpdate(
+      KendaraanUpdateRequested event, Emitter<KendaraanState> emit) async {
     emit(KendaraanActionLoading());
     try {
       await _repository.update(
@@ -309,7 +331,8 @@ class KendaraanBloc extends Bloc<KendaraanEvent, KendaraanState> {
     }
   }
 
-  Future<void> _onDelete(KendaraanDeleteRequested event, Emitter<KendaraanState> emit) async {
+  Future<void> _onDelete(
+      KendaraanDeleteRequested event, Emitter<KendaraanState> emit) async {
     emit(KendaraanActionLoading());
     try {
       await _repository.delete(event.id);

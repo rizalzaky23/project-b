@@ -6,6 +6,7 @@ import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../merek/presentation/bloc/merek_bloc.dart';
 import '../bloc/kendaraan_bloc.dart';
 import '../widgets/kendaraan_card.dart';
 
@@ -28,8 +29,9 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
   final _scrollController = ScrollController();
 
   // Filter state
+  String? _selectedMerk;
   String? _selectedKepemilikan; // null = semua, 'PT1', 'PT2', 'PT3'
-  String? _selectedStatus;      // null = semua, 'Tersedia', 'Terjual'
+  String? _selectedStatus; // null = semua, 'Tersedia', 'Terjual'
 
   // Daftar pilihan kepemilikan PT (sama dengan saat input kendaraan)
   static const _kepemilikanOptions = ['PT1', 'PT2', 'PT3'];
@@ -40,6 +42,7 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
     _selectedStatus = widget.initialStatus;
     _selectedKepemilikan = widget.initialKepemilikan;
     _loadData();
+    context.read<MerekBloc>().add(MerekLoadRequested());
     _scrollController.addListener(_onScroll);
   }
 
@@ -52,7 +55,9 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
 
   void _loadData() {
     context.read<KendaraanBloc>().add(KendaraanLoadRequested(
-          search: _searchController.text.isEmpty ? null : _searchController.text,
+          search:
+              _searchController.text.isEmpty ? null : _searchController.text,
+          merk: _selectedMerk,
           kepemilikan: _selectedKepemilikan,
           status: _selectedStatus,
         ));
@@ -69,6 +74,18 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
     setState(() {});
     context.read<KendaraanBloc>().add(KendaraanLoadRequested(
           search: value.isEmpty ? null : value,
+          merk: _selectedMerk,
+          kepemilikan: _selectedKepemilikan,
+          status: _selectedStatus,
+        ));
+  }
+
+  void _onMerkFilter(String? value) {
+    setState(() => _selectedMerk = value);
+    context.read<KendaraanBloc>().add(KendaraanLoadRequested(
+          search:
+              _searchController.text.isEmpty ? null : _searchController.text,
+          merk: value,
           kepemilikan: _selectedKepemilikan,
           status: _selectedStatus,
         ));
@@ -77,7 +94,9 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
   void _onStatusFilter(String? value) {
     setState(() => _selectedStatus = value);
     context.read<KendaraanBloc>().add(KendaraanLoadRequested(
-          search: _searchController.text.isEmpty ? null : _searchController.text,
+          search:
+              _searchController.text.isEmpty ? null : _searchController.text,
+          merk: _selectedMerk,
           kepemilikan: _selectedKepemilikan,
           status: value,
         ));
@@ -86,15 +105,25 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
   void _onKepemilikanFilter(String? value) {
     setState(() => _selectedKepemilikan = value);
     context.read<KendaraanBloc>().add(KendaraanLoadRequested(
-          search: _searchController.text.isEmpty ? null : _searchController.text,
+          search:
+              _searchController.text.isEmpty ? null : _searchController.text,
+          merk: _selectedMerk,
           kepemilikan: value,
           status: _selectedStatus,
         ));
   }
 
+  Future<void> _onAddMerkRequested() async {
+    await context.push('/mereks');
+    if (mounted) {
+      context.read<MerekBloc>().add(MerekLoadRequested());
+    }
+  }
+
   void _clearAllFilters() {
     _searchController.clear();
     setState(() {
+      _selectedMerk = null;
       _selectedKepemilikan = null;
       _selectedStatus = null;
     });
@@ -102,6 +131,7 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
   }
 
   bool get _hasActiveFilter =>
+      _selectedMerk != null ||
       _selectedKepemilikan != null ||
       _selectedStatus != null ||
       _searchController.text.isNotEmpty;
@@ -113,6 +143,7 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
 
   Future<void> _refresh() async {
     _loadData();
+    context.read<MerekBloc>().add(MerekLoadRequested());
   }
 
   @override
@@ -120,8 +151,19 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
     final size = MediaQuery.of(context).size;
     final isTablet = size.width >= 600 && size.width < 1024;
     final isDesktop = size.width >= 1024;
-    final hPad = isDesktop ? 48.0 : isTablet ? 24.0 : 16.0;
-    final int crossAxisCount = isDesktop ? 4 : isTablet ? 3 : 2;
+    final hPad = isDesktop
+        ? 48.0
+        : isTablet
+            ? 24.0
+            : 16.0;
+    final int crossAxisCount = isDesktop
+        ? 4
+        : isTablet
+            ? 3
+            : 2;
+    final authState = context.read<AuthBloc>().state;
+    final isSuperAdmin =
+        authState is AuthAuthenticated && authState.user.role == 'super_admin';
 
     return PopScope(
       canPop: false,
@@ -170,8 +212,7 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 border: Border(
-                    bottom:
-                        BorderSide(color: Theme.of(context).dividerColor)),
+                    bottom: BorderSide(color: Theme.of(context).dividerColor)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,6 +237,54 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: BlocBuilder<MerekBloc, MerekState>(
+                          builder: (context, merekState) {
+                            List<String> merkOptions = [];
+                            if (merekState is MerekLoaded) {
+                              merkOptions = merekState.items.map((e) => e.nama).toList();
+                            }
+                            
+                            return DropdownButtonFormField<String?>(
+                              value: _selectedMerk,
+                              decoration: const InputDecoration(
+                                hintText: 'Filter merk',
+                                prefixIcon: Icon(
+                                  Icons.branding_watermark_rounded,
+                                  color: AppTheme.primary,
+                                  size: 20,
+                                ),
+                              ),
+                              items: [
+                                const DropdownMenuItem<String?>(
+                                  value: null,
+                                  child: Text('Semua merk'),
+                                ),
+                                ...merkOptions.map(
+                                  (merk) => DropdownMenuItem<String?>(
+                                    value: merk,
+                                    child: Text(merk),
+                                  ),
+                                ),
+                              ],
+                              onChanged: _onMerkFilter,
+                            );
+                          }
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (isSuperAdmin)
+                        IconButton(
+                          icon: const Icon(Icons.add_circle_outline),
+                          color: AppTheme.primary,
+                          tooltip: 'Tambah merk baru',
+                          onPressed: _onAddMerkRequested,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
 
                   // ── Filter chips row ──────────────────────────────────────
                   SingleChildScrollView(
@@ -213,11 +302,21 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                           ),
                           const SizedBox(width: 6),
                           Container(
-                              width: 1, height: 24,
+                              width: 1,
+                              height: 24,
                               color: Theme.of(context).dividerColor),
                           const SizedBox(width: 6),
                         ],
 
+                        if (_selectedMerk != null) ...[
+                          _FilterChip(
+                            label: _selectedMerk!,
+                            icon: Icons.branding_watermark_rounded,
+                            selected: true,
+                            onTap: () => _onMerkFilter(null),
+                          ),
+                          const SizedBox(width: 6),
+                        ],
                         // ── Filter STATUS ─────────────────────────────────
                         _FilterChip(
                           label: 'Semua',
@@ -231,7 +330,9 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                           selected: _selectedStatus == 'Tersedia',
                           activeColor: AppTheme.success,
                           onTap: () => _onStatusFilter(
-                              _selectedStatus == 'Tersedia' ? null : 'Tersedia'),
+                              _selectedStatus == 'Tersedia'
+                                  ? null
+                                  : 'Tersedia'),
                         ),
                         const SizedBox(width: 6),
                         _FilterChip(
@@ -245,7 +346,8 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
 
                         const SizedBox(width: 10),
                         Container(
-                            width: 1, height: 24,
+                            width: 1,
+                            height: 24,
                             color: Theme.of(context).dividerColor),
                         const SizedBox(width: 10),
 
@@ -300,15 +402,18 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                         physics: const AlwaysScrollableScrollPhysics(),
                         slivers: [
                           SliverPadding(
-                            padding:
-                                EdgeInsets.fromLTRB(hPad, 12, hPad, 4),
+                            padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 4),
                             sliver: SliverToBoxAdapter(
                               child: Row(children: [
                                 Container(
-                                  width: 4, height: 16,
+                                  width: 4,
+                                  height: 16,
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                      colors: [AppTheme.primary, AppTheme.secondary],
+                                      colors: [
+                                        AppTheme.primary,
+                                        AppTheme.secondary
+                                      ],
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
                                     ),
@@ -331,15 +436,16 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                             ),
                           ),
                           SliverPadding(
-                            padding:
-                                EdgeInsets.fromLTRB(hPad, 8, hPad, 100),
+                            padding: EdgeInsets.fromLTRB(hPad, 8, hPad, 100),
                             sliver: SliverGrid(
                               gridDelegate:
                                   SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: crossAxisCount,
                                 childAspectRatio: isDesktop
                                     ? 0.78
-                                    : isTablet ? 0.76 : 0.74,
+                                    : isTablet
+                                        ? 0.76
+                                        : 0.74,
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
                               ),
@@ -368,8 +474,7 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
                                       );
                                       if (confirm && context.mounted) {
                                         context.read<KendaraanBloc>().add(
-                                            KendaraanDeleteRequested(
-                                                item.id));
+                                            KendaraanDeleteRequested(item.id));
                                       }
                                     },
                                   );
@@ -395,28 +500,28 @@ class _KendaraanListScreenState extends State<KendaraanListScreen> {
             ),
           ]),
         ),
-        floatingActionButton: Builder(
-          builder: (context) {
-            final authState = context.read<AuthBloc>().state;
-            final isAdmin = authState is AuthAuthenticated && authState.user.role == 'admin';
-            
-            if (!isAdmin) return const SizedBox.shrink();
-            
-            return FloatingActionButton.extended(
-              onPressed: _goCreate,
-              icon: const Icon(Icons.add),
-              label: const Text('Tambah'),
-              backgroundColor: AppTheme.primary,
-              foregroundColor: Colors.white,
-            );
-          }
-        ),
+        floatingActionButton: Builder(builder: (context) {
+          final authState = context.read<AuthBloc>().state;
+          final isAdmin =
+              authState is AuthAuthenticated && authState.user.role == 'admin';
+
+          if (!isAdmin) return const SizedBox.shrink();
+
+          return FloatingActionButton.extended(
+            onPressed: _goCreate,
+            icon: const Icon(Icons.add),
+            label: const Text('Tambah'),
+            backgroundColor: AppTheme.primary,
+            foregroundColor: Colors.white,
+          );
+        }),
       ),
     );
   }
 
   KendaraanLoadRequested _buildLoadEvent() => KendaraanLoadRequested(
         search: _searchController.text.isEmpty ? null : _searchController.text,
+        merk: _selectedMerk,
         kepemilikan: _selectedKepemilikan,
         status: _selectedStatus,
       );
@@ -443,9 +548,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isReset
-        ? AppTheme.error
-        : activeColor ?? AppTheme.primary;
+    final color = isReset ? AppTheme.error : activeColor ?? AppTheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
@@ -469,7 +572,8 @@ class _FilterChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 13,
+              Icon(icon,
+                  size: 13,
                   color: selected || isReset ? color : AppTheme.textSecondary),
               const SizedBox(width: 4),
             ],
@@ -477,9 +581,8 @@ class _FilterChip extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: selected || isReset
-                    ? FontWeight.w600
-                    : FontWeight.w400,
+                fontWeight:
+                    selected || isReset ? FontWeight.w600 : FontWeight.w400,
                 color: selected || isReset ? color : AppTheme.textSecondary,
               ),
             ),
@@ -561,7 +664,8 @@ class _KepemilikanFilter extends StatelessWidget {
             children: [
               const SizedBox(height: 16),
               Container(
-                  width: 40, height: 4,
+                  width: 40,
+                  height: 4,
                   decoration: BoxDecoration(
                       color: Colors.grey.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(2))),
@@ -571,8 +675,8 @@ class _KepemilikanFilter extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text('Filter Kepemilikan PT',
-                      style: TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w700)),
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 ),
               ),
               const SizedBox(height: 8),
@@ -632,8 +736,8 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         status,
-        style: TextStyle(
-            fontSize: 11, fontWeight: FontWeight.w600, color: color),
+        style:
+            TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
       ),
     );
   }

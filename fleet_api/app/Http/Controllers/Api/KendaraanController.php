@@ -36,7 +36,11 @@ class KendaraanController extends Controller
             ->when($request->tahun_pembuatan, fn($q, $v) => $q->where('tahun_pembuatan', $v))
             ->when($request->kepemilikan, fn($q, $v) => $q->where('kepemilikan', $v))
             ->when($request->status, fn($q, $v) => $q->where('status', $v))
-            ->latest();
+            ->when($request->sort_by, function($q) use ($request) {
+                $q->orderBy($request->sort_by, $request->sort_dir ?? 'asc');
+            }, function($q) {
+                $q->latest();
+            });
 
         $paginated = $query->paginate($request->per_page ?? 15);
         $paginated->getCollection()->transform(function($kendaraan) {

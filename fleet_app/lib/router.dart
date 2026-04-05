@@ -38,6 +38,8 @@ import 'features/user_management/presentation/bloc/user_bloc.dart';
 import 'features/user_management/presentation/screens/user_list_screen.dart';
 import 'features/user_management/presentation/screens/user_form_screen.dart';
 import 'features/user_management/domain/entities/managed_user_entity.dart';
+import 'features/merek/presentation/bloc/merek_bloc.dart';
+import 'features/merek/presentation/screens/merek_list_screen.dart';
 import 'injection_container.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -75,8 +77,11 @@ final GoRouter appRouter = GoRouter(
       builder: (ctx, state) {
         final status = state.uri.queryParameters['status'];
         final kepemilikan = state.uri.queryParameters['kepemilikan'];
-        return BlocProvider(
-          create: (_) => sl<KendaraanBloc>(),
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => sl<KendaraanBloc>()),
+            BlocProvider(create: (_) => sl<MerekBloc>()),
+          ],
           child: KendaraanListScreen(
             initialStatus: status,
             initialKepemilikan: kepemilikan,
@@ -86,8 +91,11 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/kendaraan/create',
-      builder: (_, __) => BlocProvider(
-          create: (_) => sl<KendaraanBloc>(),
+      builder: (_, __) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => sl<KendaraanBloc>()),
+            BlocProvider(create: (_) => sl<MerekBloc>()),
+          ],
           child: const KendaraanFormScreen()),
     ),
     GoRoute(
@@ -100,6 +108,7 @@ final GoRouter appRouter = GoRouter(
               BlocProvider(create: (_) => sl<KendaraanBloc>()),
               BlocProvider(create: (_) => sl<DetailKendaraanBloc>()),
               BlocProvider(create: (_) => sl<AsuransiBloc>()),
+              BlocProvider(create: (_) => sl<MerekBloc>()),
             ],
             child: KendaraanDetailScreen(kendaraan: entity),
           );
@@ -109,6 +118,7 @@ final GoRouter appRouter = GoRouter(
             BlocProvider(create: (_) => sl<KendaraanBloc>()),
             BlocProvider(create: (_) => sl<DetailKendaraanBloc>()),
             BlocProvider(create: (_) => sl<AsuransiBloc>()),
+            BlocProvider(create: (_) => sl<MerekBloc>()),
           ],
           child: _FetchAndShowKendaraanDetail(
               id: int.parse(state.pathParameters['id']!)),
@@ -119,8 +129,11 @@ final GoRouter appRouter = GoRouter(
       path: '/kendaraan/:id/edit',
       builder: (ctx, state) {
         final entity = state.extra as KendaraanEntity?;
-        return BlocProvider(
-          create: (_) => sl<KendaraanBloc>(),
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => sl<KendaraanBloc>()),
+            BlocProvider(create: (_) => sl<MerekBloc>()),
+          ],
           child: KendaraanFormScreen(existing: entity),
         );
       },
@@ -399,6 +412,13 @@ final GoRouter appRouter = GoRouter(
           child: UserFormScreen(existing: entity),
         );
       },
+    ),
+    GoRoute(
+      path: '/mereks',
+      builder: (_, __) => BlocProvider(
+        create: (_) => sl<MerekBloc>(),
+        child: const MerekListScreen(),
+      ),
     ),
   ],
 );

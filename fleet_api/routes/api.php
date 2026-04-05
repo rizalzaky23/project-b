@@ -47,10 +47,16 @@ Route::middleware('auth:sanctum')->group(function () {
         // Servis Kendaraan
         Route::apiResource('servis-kendaraan', ServisKendaraanController::class)
             ->parameters(['servis-kendaraan' => 'servis']);
+
+        // Merek (Read-only for admin)
+        Route::apiResource('mereks', \App\Http\Controllers\Api\MerekController::class)->only(['index', 'show']);
     });
 
     // ─── User Management (Super Admin Only) ───────────────────────
     Route::middleware('role.super_admin')->group(function () {
         Route::apiResource('users', UserController::class)->except(['show']);
+        
+        // Merek (Write-access for super admin)
+        Route::apiResource('mereks', \App\Http\Controllers\Api\MerekController::class)->except(['index', 'show']);
     });
 });
